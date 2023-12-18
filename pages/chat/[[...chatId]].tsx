@@ -1,11 +1,16 @@
-import { streamReader } from 'openai-edge-stream';
 import Head from 'next/head';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChatSidebar } from 'components';
 
-export default function ChatPage({ chatId }) {
+export default function ChatPage() {
+	//
 	const [messageText, setMessageText] = useState<string>('What is your name?');
 	const [incommingMessage, setsetIncommingMessageMessageText] = useState<string>('');
+
+	const prompt = useMemo(
+		() => `Q: ${messageText}. Generate a response with less than 200 characters.`,
+		[messageText]
+	);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -16,18 +21,28 @@ export default function ChatPage({ chatId }) {
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ message: messageText }),
+			body: JSON.stringify({ prompt }),
 		});
+
+		if (!response.ok) {
+			throw new Error(response.statusText);
+		}
 
 		const data = response.body;
 		if (!data) {
 			return;
 		}
+
 		const reader = data.getReader();
-		await streamReader(reader, (message) => {
-			console.log('message', message);
-			setsetIncommingMessageMessageText(message.content);
-		});
+		const decoder = new TextDecoder();
+		let done = false;
+
+		while (!done) {
+			const { value, done: doneReading } = await reader.read();
+			done = doneReading;
+			const chunkValue = decoder.decode(value);
+			setsetIncommingMessageMessageText((prev) => prev + chunkValue);
+		}
 	};
 
 	return (
