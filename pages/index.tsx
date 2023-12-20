@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { getSession } from '@auth0/nextjs-auth0';
+import { AnimatedWaves } from 'components';
 
 export default function Home() {
 	const { isLoading, error, user } = useUser();
@@ -19,7 +20,10 @@ export default function Home() {
 			<Head>
 				<title>PAI - GPT</title>
 			</Head>
-			<div className="flex min-h-screen w-full flex-col items-center justify-center bg-gray-800">
+			<div className="bg-animation-waves">
+				<AnimatedWaves />
+			</div>
+			<div className="splash-page">
 				<figure className="flex max-w-lg flex-col items-center">
 					<img src="/logo.svg" width={100} />
 					<figcaption className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">

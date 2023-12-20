@@ -1,3 +1,4 @@
+import React from 'react';
 import Head from 'next/head';
 import { useMemo, useState } from 'react';
 import { ChatSidebar } from 'components';

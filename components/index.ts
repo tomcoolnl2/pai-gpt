@@ -1,1 +1,2 @@
-export { ChatSidebar } from './ChatSidebar';
+export * from './AnimatedWaves';
+export * from './ChatSidebar';

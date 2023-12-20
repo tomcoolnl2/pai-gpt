@@ -2,11 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    body {
+        @apply bg-gray-800
+    }
+}
+
 @layer components {
     .btn {
         @apply rounded-md bg-emerald-500 px-4 py-2 text-white hover:bg-emerald-600
     }
     .textarea {
-        @apply w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500
+        @apply w-full resize-none rounded-md bg-gray-700 p-2 text-white focus:border-emerald-500 focus:bg-gray-600 focus:outline focus:outline-emerald-500 pointer-events-none
+    }
+    .splash-page {
+        @apply relative flex min-h-screen w-full flex-col items-center justify-center z-10
+    }
+    .bg-animation-waves {
+        @apply absolute w-full h-full bg-transparent
     }
 }
