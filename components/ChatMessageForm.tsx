@@ -1,6 +1,5 @@
 import React from 'react';
-import { v4 as uuid } from 'uuid';
-import { ConversationRole, Message } from 'context/conversation/ChatMessage';
+import { QuestionMessage } from 'context/conversation/ChatMessage';
 import { useConversationContext } from 'context/conversation';
 
 export const ChatMessageForm: React.FC<{ disabled: boolean }> = ({ disabled }) => {
@@ -11,7 +10,7 @@ export const ChatMessageForm: React.FC<{ disabled: boolean }> = ({ disabled }) =
 	const handleSubmit = React.useCallback(
 		async (event: React.FormEvent<HTMLFormElement>) => {
 			event.preventDefault();
-			const message = new Message(uuid(), ConversationRole.USER, question);
+			const message = new QuestionMessage(question);
 			addToConversation(message);
 			submitQuestion(question);
 			setQuestion('');

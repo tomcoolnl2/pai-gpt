@@ -1,14 +1,13 @@
 import React from 'react';
-import { v4 as uuid } from 'uuid';
 import { ConversationSet } from './ConversationSet';
-import { ChatMessageApi } from './ChatMessageApi';
-import { Answer, ConversationRole, Message } from './ChatMessage';
+import { ConversationApi } from './ConversationApi';
+import { Message, AnswerMessage, SystemMessage } from './ChatMessage';
 import demoConversation from 'public/demo.json';
 
 interface ConversationState {
-	conversation: ConversationSet<Message>;
-	answerStream: Answer;
-	addToConversation: (item: Message) => void;
+	conversation: ConversationSet<Message> | null;
+	answerStream: Message;
+	addToConversation: (message: Message) => void;
 	submitQuestion: (question: string) => void;
 }
 
@@ -31,28 +30,21 @@ interface Props {
 
 export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	//
-	const [answerStream, setAnswerStream] = React.useState<Answer>(new Answer());
+	const [answerStream, setAnswerStream] = React.useState<AnswerMessage | SystemMessage>(null);
 	const [conversation, setConversation] = React.useState(new ConversationSet<Message>());
-	const { current: api } = React.useRef(new ChatMessageApi(setAnswerStream));
+	const { current: api } = React.useRef(new ConversationApi(setAnswerStream));
 
 	React.useEffect(() => {
 		// for development purposes
-		demoConversation.map((message) => conversation.add(message as Message));
+		// demoConversation.map((message) => conversation.add(message as Message));
 	}, []);
 
 	React.useEffect(() => {
-		if (answerStream.done) {
-			const message = convertAnswerToMessage(answerStream);
-			addToConversation(message);
-			setAnswerStream(new Answer());
+		if (answerStream?.done && answerStream?.content.length) {
+			addToConversation(answerStream);
+			setAnswerStream(null);
 		}
-	}, [answerStream.done]);
-
-	const convertAnswerToMessage = React.useCallback((answer: Answer): Message => {
-		const { content } = answer;
-		const role = ConversationRole.ASSISTENT;
-		return new Message(uuid(), role, content);
-	}, []);
+	}, [answerStream]);
 
 	const submitQuestion = React.useCallback(
 		(question: string) => {
@@ -61,8 +53,11 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 		[api],
 	);
 
-	const addToConversation = React.useCallback((message: Message) => {
-		setConversation((prevConv) => new ConversationSet([...prevConv]).add(message));
+	const addToConversation = React.useCallback((message: Message): void => {
+		setConversation((prevConv) => {
+			const conversation = new ConversationSet([...prevConv]);
+			return conversation.add(message);
+		});
 	}, []);
 
 	const contextValue = React.useMemo(

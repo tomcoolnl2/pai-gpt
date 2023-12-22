@@ -1,14 +1,14 @@
-import { Answer } from './ChatMessage';
+import { Message, AnswerMessage, SystemErrorMessage } from './ChatMessage';
 
 /**
  * Represents a class handling chat message API interactions.
  */
-export class ChatMessageApi {
+export class ConversationApi {
 	/**
-	 * Creates an instance of ChatMessageApi.
+	 * Creates an instance of ConversationApi.
 	 * @param {React.Dispatch<React.SetStateAction<string>>} answerStreamCallback - Callback function to handle streamed content.
 	 */
-	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Answer>>) {}
+	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {}
 
 	/**
 	 * Generates a prompt based on the provided question.
@@ -16,7 +16,7 @@ export class ChatMessageApi {
 	 * @returns {string} - The generated prompt.
 	 * @private
 	 */
-	private toPrompt(question: string): string {
+	private generatePrompt(question: string): string {
 		return `
             Q: ${question}. 
             Generate a response with less than 200 characters. 
@@ -42,7 +42,6 @@ export class ChatMessageApi {
 		while (!doneReading) {
 			//
 			const { value, done } = await reader.read();
-			const answer = new Answer();
 			let chunk = '';
 
 			doneReading = done;
@@ -53,10 +52,12 @@ export class ChatMessageApi {
 
 			if (value || done) {
 				this.answerStreamCallback((prevAnswer) => {
-					if (prevAnswer instanceof Answer) {
-						answer.content = prevAnswer.content + chunk;
-						answer.done = done;
+					const answer = new AnswerMessage();
+					if (prevAnswer instanceof AnswerMessage) {
+						Object.assign(answer, prevAnswer);
 					}
+					answer.content += chunk;
+					answer.done = done;
 					return answer;
 				});
 			}
@@ -71,7 +72,7 @@ export class ChatMessageApi {
 	 */
 	public async sendMessage(question: string): Promise<void> {
 		try {
-			const prompt = this.toPrompt(question);
+			const prompt = this.generatePrompt(question);
 			const response = await fetch('/api/chat/sendMessage', {
 				method: 'POST',
 				headers: {
@@ -81,14 +82,18 @@ export class ChatMessageApi {
 			});
 
 			if (!response.ok) {
-				throw new Error(response.statusText);
+				const systemMessage = new SystemErrorMessage(response.statusText);
+				this.answerStreamCallback(systemMessage);
+			} else {
+				this.generateStream(response.body);
 			}
-
-			this.generateStream(response.body);
 			//
-		} catch (error) {
-			// Handle error
-			console.error('Error sending message:', error);
+		} catch (error: unknown) {
+			const fallbackContent = 'Error sending message';
+			const messageError = error instanceof Error ? error.message : fallbackContent;
+			const systemMessage = new SystemErrorMessage(messageError);
+			this.answerStreamCallback(systemMessage);
+			console.error(fallbackContent, error);
 		}
 	}
 }

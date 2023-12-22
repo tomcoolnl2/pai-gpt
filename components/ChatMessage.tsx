@@ -10,11 +10,14 @@ export const ChatMessage: React.FC<Props> = ({ role, content }) => {
 	//
 	const { user } = useUser();
 
+	console.log(role);
+
 	const avatar = React.useMemo(() => {
 		const defaultSrc = 'http://www.gravatar.com/avatar';
 		let src = '';
 		switch (role) {
-			case ConversationRole.ASSISTENT:
+			case ConversationRole.ASSISTANT:
+			case ConversationRole.SYSTEM:
 				src = logo.src;
 				break;
 			case ConversationRole.USER:
