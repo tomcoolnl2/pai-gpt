@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { ConversationRole, Message } from 'context/conversation/ChatMessage';
 import { useConversationContext } from 'context/conversation';
 
-export const ChatMessageForm: React.FC = () => {
+export const ChatMessageForm: React.FC<{ disabled: boolean }> = ({ disabled }) => {
 	//
 	const [question, setQuestion] = React.useState<string>('');
 	const { submitQuestion, addToConversation } = useConversationContext();
@@ -22,7 +22,7 @@ export const ChatMessageForm: React.FC = () => {
 	return (
 		<footer className="bg-gray-800 p-10">
 			<form onSubmit={handleSubmit}>
-				<fieldset className="flex gap-2">
+				<fieldset className="flex gap-2" disabled={disabled}>
 					<textarea
 						value={question}
 						onChange={(e) => setQuestion(e.target.value)}

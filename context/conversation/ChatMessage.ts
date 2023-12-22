@@ -9,7 +9,7 @@ export class Message {
 export class Answer {
 	constructor(
 		public content: string = '',
-		public done: boolean = false,
+		public done: boolean = true,
 	) {}
 }
 

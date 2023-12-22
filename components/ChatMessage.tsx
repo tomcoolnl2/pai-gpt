@@ -23,7 +23,6 @@ export const ChatMessage: React.FC<Props> = ({ role, content }) => {
 			default:
 				src = defaultSrc;
 		}
-		console.log(role, src);
 		return <Image src={src} width={30} height={30} alt={`${role} avatar`} className="avatar" />;
 	}, [user, role]);
 

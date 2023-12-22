@@ -25,6 +25,45 @@ export class ChatMessageApi {
 	}
 
 	/**
+	 * Asynchronously generates a stream of data from a ReadableStream and invokes a callback with accumulated content.
+	 * @param {ReadableStream<Uint8Array>} data - The ReadableStream containing Uint8Array data.
+	 * @returns {Promise<void>} A Promise that resolves once the stream processing is completed.
+	 */
+	private async generateStream(data: ReadableStream<Uint8Array>): Promise<void> {
+		//
+		if (!data) {
+			return;
+		}
+
+		const reader = data.getReader();
+		const decoder = new TextDecoder();
+		let doneReading = false;
+
+		while (!doneReading) {
+			//
+			const { value, done } = await reader.read();
+			const answer = new Answer();
+			let chunk = '';
+
+			doneReading = done;
+
+			if (value) {
+				chunk = decoder.decode(value);
+			}
+
+			if (value || done) {
+				this.answerStreamCallback((prevAnswer) => {
+					if (prevAnswer instanceof Answer) {
+						answer.content = prevAnswer.content + chunk;
+						answer.done = done;
+					}
+					return answer;
+				});
+			}
+		}
+	}
+
+	/**
 	 * Sends a message based on the provided question and handles the response.
 	 * @param {string} question - The question to send as a message.
 	 * @returns {Promise<void>} - Promise that resolves when the message is sent.
@@ -45,42 +84,8 @@ export class ChatMessageApi {
 				throw new Error(response.statusText);
 			}
 
-			const data = response.body;
-
-			if (!data) {
-				return;
-			}
-
-			const reader = data.getReader();
-			const decoder = new TextDecoder();
-			let doneReading = false;
-
-			while (!doneReading) {
-				const answer = new Answer();
-				const { value, done } = await reader.read();
-				doneReading = done;
-
-				if (value) {
-					const chunk = decoder.decode(value);
-					this.answerStreamCallback((prevAnswer) => {
-						if (prevAnswer instanceof Answer) {
-							answer.content = prevAnswer.content + chunk;
-							answer.done = false;
-						}
-						return answer;
-					});
-				}
-
-				if (done) {
-					this.answerStreamCallback((prevAnswer) => {
-						if (prevAnswer instanceof Answer) {
-							answer.content = prevAnswer.content;
-							answer.done = true;
-						}
-						return answer;
-					});
-				}
-			}
+			this.generateStream(response.body);
+			//
 		} catch (error) {
 			// Handle error
 			console.error('Error sending message:', error);

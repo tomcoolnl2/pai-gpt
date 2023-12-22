@@ -23,7 +23,7 @@ export default function ChatPage() {
 							<ChatMessage role={ConversationRole.ASSISTENT} content={answerStream.content} />
 						)}
 					</ul>
-					<ChatMessageForm />
+					<ChatMessageForm disabled={!answerStream.done} />
 				</div>
 			</div>
 		</>
