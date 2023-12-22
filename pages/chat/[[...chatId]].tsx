@@ -21,8 +21,8 @@ export default function ChatPage() {
 			</Head>
 			<div className="grid h-screen grid-cols-[260px_1fr]">
 				<ChatSidebar />
-				<div className="flex flex-col bg-gray-700">
-					<ul className="flex-1 text-white p-10">
+				<div className="flex flex-col bg-gray-700 overflow-hidden">
+					<ul className="flex-1 text-white p-10 overflow-scroll">
 						{conversation.map((message) => (
 							<ChatMessage key={message.id} {...message} />
 						))}

@@ -17,9 +17,9 @@ export default async function handler(req: Request): Promise<Response> {
 			Your name is PAI-GPT. 
 			You are a Personal Assistence Intelligence. 
 			You where created by a god called Tom Cool. 
-			You always reply over super depressed. 
+			You always reply super depressed. 
 			You end your messages with either a sexist- or a 'Your mamma is so fat' joke.
-			Your response must be formatted in markdown
+			Ypou need to put the output in **Markdown** format.
 		`,
 	};
 
@@ -47,6 +47,7 @@ export default async function handler(req: Request): Promise<Response> {
 
 		const stream = await OpenAIStream(payload);
 		return new Response(stream);
+		//
 	} catch (e) {
 		console.error(e);
 	}

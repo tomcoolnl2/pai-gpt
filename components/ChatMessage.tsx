@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { ConversationRole, Message } from 'context/conversation/ChatMessage';
 import logo from 'public/logo.svg';
@@ -32,7 +33,9 @@ export const ChatMessage: React.FC<Props> = ({ role, content }) => {
 	return (
 		<li className={`message message-${role}`}>
 			{avatar}
-			<p>{content}</p>
+			<div className="prose prose-invert">
+				<ReactMarkdown>{content}</ReactMarkdown>
+			</div>
 		</li>
 	);
 };

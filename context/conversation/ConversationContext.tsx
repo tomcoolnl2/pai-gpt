@@ -36,7 +36,7 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 
 	React.useEffect(() => {
 		// for development purposes
-		// demoConversation.map((message) => conversation.add(message as Message));
+		demoConversation.map((message) => conversation.add(message as Message));
 	}, []);
 
 	React.useEffect(() => {

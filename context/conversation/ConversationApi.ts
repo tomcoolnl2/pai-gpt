@@ -18,8 +18,7 @@ export class ConversationApi {
 	 */
 	private generatePrompt(question: string): string {
 		return `
-            Q: ${question}. 
-            Generate a response with less than 200 characters. 
+            Q: ${question}.
             Remove the preceding 'A:'
         `;
 	}
