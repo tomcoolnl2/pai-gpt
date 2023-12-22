@@ -34,21 +34,17 @@ export const AnimationPoints: React.FC = () => {
 	}, [graph]);
 
 	Fiber.useFrame(() => {
-		t += 5;
-
 		const positions = bufferRef.current.array;
-
+		t += 5;
 		let i = 0;
 		for (let xi = 0; xi < count; xi += 1) {
 			for (let zi = 0; zi < count; zi += 1) {
 				let x = sep * (xi - count / 2);
 				let z = sep * (zi - count / 2);
-
 				positions[i + 1] = graph(x, z);
 				i += 3;
 			}
 		}
-
 		bufferRef.current.needsUpdate = true;
 	});
 

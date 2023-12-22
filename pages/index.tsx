@@ -4,7 +4,8 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import { getSession } from '@auth0/nextjs-auth0';
 import { AnimatedWaves } from 'components';
 
-export default function Home() {
+export const Home: React.FC = () => {
+	//
 	const { isLoading, error, user } = useUser();
 
 	if (isLoading) {
@@ -44,7 +45,9 @@ export default function Home() {
 			</div>
 		</>
 	);
-}
+};
+
+export default Home;
 
 export const getServerSideProps = async ({ req, res }) => {
 	const session = await getSession(req, res);
@@ -54,5 +57,5 @@ export const getServerSideProps = async ({ req, res }) => {
 				redirect: {
 					destination: '/chat',
 				},
-		  };
+			};
 };
