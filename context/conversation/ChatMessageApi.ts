@@ -1,3 +1,5 @@
+import { Answer } from './ChatMessage';
+
 /**
  * Represents a class handling chat message API interactions.
  */
@@ -6,7 +8,7 @@ export class ChatMessageApi {
 	 * Creates an instance of ChatMessageApi.
 	 * @param {React.Dispatch<React.SetStateAction<string>>} answerStreamCallback - Callback function to handle streamed content.
 	 */
-	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<string>>) {}
+	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Answer>>) {}
 
 	/**
 	 * Generates a prompt based on the provided question.
@@ -54,12 +56,29 @@ export class ChatMessageApi {
 			let doneReading = false;
 
 			while (!doneReading) {
+				const answer = new Answer();
 				const { value, done } = await reader.read();
 				doneReading = done;
 
 				if (value) {
-					const chunkValue = decoder.decode(value);
-					this.answerStreamCallback((prev) => prev + chunkValue);
+					const chunk = decoder.decode(value);
+					this.answerStreamCallback((prevAnswer) => {
+						if (prevAnswer instanceof Answer) {
+							answer.content = prevAnswer.content + chunk;
+							answer.done = false;
+						}
+						return answer;
+					});
+				}
+
+				if (done) {
+					this.answerStreamCallback((prevAnswer) => {
+						if (prevAnswer instanceof Answer) {
+							answer.content = prevAnswer.content;
+							answer.done = true;
+						}
+						return answer;
+					});
 				}
 			}
 		} catch (error) {

@@ -6,6 +6,13 @@ export class Message {
 	) {}
 }
 
+export class Answer {
+	constructor(
+		public content: string = '',
+		public done: boolean = false,
+	) {}
+}
+
 export enum ConversationRole {
 	USER = 'user',
 	ASSISTENT = 'assistant',

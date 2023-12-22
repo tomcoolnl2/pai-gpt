@@ -31,4 +31,13 @@
     .bg-animation-waves {
         @apply absolute w-full h-full bg-transparent
     }
+    .message {
+        @apply grid grid-cols-[30px_1fr] gap-5 p-5
+    }
+    .message.message-user {
+        @apply bg-gray-800 
+    }
+    .avatar {
+        @apply rounded-sm
+    }
 }

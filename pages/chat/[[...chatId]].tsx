@@ -19,7 +19,9 @@ export default function ChatPage() {
 						{conversation.map((message) => (
 							<ChatMessage key={message.id} {...message} />
 						))}
-						<ChatMessage role={ConversationRole.ASSISTENT} content={answerStream} />
+						{answerStream?.content && (
+							<ChatMessage role={ConversationRole.ASSISTENT} content={answerStream.content} />
+						)}
 					</ul>
 					<ChatMessageForm />
 				</div>

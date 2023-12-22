@@ -1,11 +1,35 @@
-import { Message } from 'context/conversation/ChatMessage';
+import React from 'react';
+import Image from 'next/image';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { ConversationRole, Message } from 'context/conversation/ChatMessage';
+import logo from 'public/logo.svg';
 
 type Props = Omit<Message, 'id'>;
 
 export const ChatMessage: React.FC<Props> = ({ role, content }) => {
+	//
+	const { user } = useUser();
+
+	const avatar = React.useMemo(() => {
+		const defaultSrc = 'http://www.gravatar.com/avatar';
+		let src = '';
+		switch (role) {
+			case ConversationRole.ASSISTENT:
+				src = logo.src;
+				break;
+			case ConversationRole.USER:
+				src = user ? user.picture : defaultSrc;
+				break;
+			default:
+				src = defaultSrc;
+		}
+		console.log(role, src);
+		return <Image src={src} width={30} height={30} alt={`${role} avatar`} className="avatar" />;
+	}, [user, role]);
+
 	return (
-		<li className="grid grid-cols-[30px_1fr] gap-5 p-5">
-			<span></span>
+		<li className={`message message-${role}`}>
+			{avatar}
 			<p>{content}</p>
 		</li>
 	);
