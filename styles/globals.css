@@ -32,7 +32,7 @@
         @apply absolute w-full h-full bg-transparent
     }
     .message {
-        @apply grid grid-cols-[30px_1fr] gap-5 p-5
+        @apply grid grid-cols-[30px_1fr] gap-5 p-5 rounded-l
     }
     .message.message-system {
         @apply bg-red-400/30
