@@ -9,6 +9,9 @@ module.exports = {
 		'./src/**/*.{js,ts,jsx,tsx}',
 	],
 	theme: {
+		container: {
+			center: true,
+		},
 		extend: {
 			animation: {
 				ellipsis: 'ellipsis steps(4,end) 900ms infinite',

@@ -1,5 +1,11 @@
 import { v4 as uuid } from 'uuid';
 
+export interface Prompt {
+	role: Role;
+	content: string;
+	question?: string;
+}
+
 export enum Role {
 	SYSTEM = 'system',
 	USER = 'user',
@@ -55,6 +61,15 @@ export abstract class SystemMessage extends Message {
 	readonly role = Role.SYSTEM;
 
 	constructor() {
+		super();
+	}
+}
+
+export class SystemWarningMessage extends SystemMessage {
+	//
+	readonly type = SystemMessageType.WARN;
+
+	constructor(public content: string) {
 		super();
 	}
 }

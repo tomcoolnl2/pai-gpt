@@ -1,20 +1,21 @@
 import React from 'react';
 import { ConversationSet } from './ConversationSet';
 import { ConversationApi } from './ConversationApi';
-import { Message, AnswerMessage, SystemMessage } from './ChatMessage';
-import demoConversation from 'public/demo.json';
+import { AnswerMessage, Message, QuestionMessage, SystemMessage, SystemWarningMessage } from './ConversationMessage';
 
 interface ConversationState {
 	conversation: ConversationSet<Message> | null;
-	answerStream: Message;
-	addToConversation: (message: Message) => void;
+	answerStream: Message | null;
+	systemMessage: SystemMessage | null;
+	getConversationList: () => Promise<void>;
 	submitQuestion: (question: string) => void;
 }
 
 const initialConversationContext = {
 	conversation: null,
 	answerStream: null,
-	addToConversation: () => void 0,
+	systemMessage: null,
+	getConversationList: () => void 0,
 	submitQuestion: () => void 0,
 };
 
@@ -32,7 +33,8 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	//
 	const [answerStream, setAnswerStream] = React.useState<Message>(null);
 	const [conversation, setConversation] = React.useState(new ConversationSet<Message>());
-	const { current: api } = React.useRef(new ConversationApi(setAnswerStream));
+	const [systemMessage, setSystemMessage] = React.useState<SystemMessage>(null);
+	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
 
 	React.useEffect(() => {
 		if (answerStream?.done) {
@@ -41,15 +43,27 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 		}
 	}, [answerStream]);
 
+	const getConversationList = React.useCallback(async () => {
+		return await conversationApi.getConversationList();
+	}, []);
+
 	const submitQuestion = React.useCallback(
 		(question: string) => {
-			setAnswerStream(new AnswerMessage());
-			api.sendMessage(question);
+			if (question.length > 3) {
+				setSystemMessage(null);
+				addToConversation(new QuestionMessage(question));
+				setAnswerStream(new AnswerMessage());
+				conversationApi.sendMessage(question);
+			} else {
+				const warning = 'Tip: For better responses, aim for questions longer than 3 characters.';
+				const message = new SystemWarningMessage(warning);
+				setSystemMessage(message);
+			}
 		},
-		[api],
+		[conversationApi],
 	);
 
-	const addToConversation = React.useCallback((message: Message): void => {
+	const addToConversation = React.useCallback((message: Message) => {
 		setConversation((prevConv) => {
 			const conversation = new ConversationSet([...prevConv]);
 			return conversation.add(message);
@@ -57,13 +71,8 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	}, []);
 
 	const contextValue = React.useMemo(
-		() => ({
-			answerStream,
-			conversation,
-			addToConversation,
-			submitQuestion,
-		}),
-		[answerStream, conversation, addToConversation, submitQuestion],
+		() => ({ answerStream, conversation, systemMessage, getConversationList, submitQuestion }),
+		[answerStream, conversation, systemMessage, getConversationList, submitQuestion],
 	);
 
 	return <ConversationContext.Provider value={contextValue}>{children}</ConversationContext.Provider>;

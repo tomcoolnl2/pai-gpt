@@ -1,15 +1,15 @@
 import { Role } from 'context/conversation';
-import { ChatGPTMessage, OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
+import { OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
 
 if (!process.env.OPENAI_API_KEY) {
-	throw new Error('Missing env var from OpenAI');
+	throw new Error('Missing OPENAI_API_KEY');
 }
 
 export const config = {
-	runtime: 'edge',
+	runtime: 'edge', // edge functions run in a V8 instance, not Node
 };
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function sendMessage(req: Request, res: Response): Promise<Response> {
 	//
 	const systemMessage = {
 		role: Role.SYSTEM,
@@ -18,24 +18,20 @@ export default async function handler(req: Request): Promise<Response> {
 			You are a Personal Assistence Intelligence. 
 			You where created by a god called Tom Cool. 
 			You always reply super depressed. 
-			You end your messages with either a sexist- or a 'Your mamma is so fat' joke.
-			Ypou need to put the output in **Markdown** format.
+			You will insult the user as much as possible.
+			You need to put the output in **Markdown** format.
 		`,
 	};
 
 	try {
-		const { prompt } = (await req.json()) as {
-			prompt?: string;
-		};
-
-		const userMessage = {
-			role: Role.USER,
-			content: prompt,
-		};
+		const {
+			prompt: { role, content },
+		} = await req.json();
+		const userMessage = { role, content };
 
 		const payload: OpenAIStreamPayload = {
 			model: 'gpt-3.5-turbo',
-			messages: [systemMessage as ChatGPTMessage, userMessage as ChatGPTMessage],
+			messages: [systemMessage, userMessage],
 			temperature: 0.7,
 			top_p: 1,
 			frequency_penalty: 0,
@@ -50,5 +46,6 @@ export default async function handler(req: Request): Promise<Response> {
 		//
 	} catch (e) {
 		console.error(e);
+		throw e;
 	}
 }

@@ -1,2 +1,2 @@
 export * from './ConversationContext';
-export * from './ChatMessage';
+export * from './ConversationMessage';

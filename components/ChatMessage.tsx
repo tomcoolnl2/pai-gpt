@@ -2,10 +2,18 @@ import React from 'react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { Conversation } from 'context';
+import { Role, SystemMessageType } from 'context/conversation';
 import logo from 'public/logo.svg';
 
-export const ChatMessage: React.FC<Conversation.Message> = ({ role, content }) => {
+type Props = {
+	id: string;
+	role: Role;
+	content: string;
+	done: boolean;
+	type?: SystemMessageType;
+};
+
+export const ChatMessage: React.FC<Props> = ({ role, content, type }) => {
 	//
 	const { user } = useUser();
 
@@ -13,11 +21,11 @@ export const ChatMessage: React.FC<Conversation.Message> = ({ role, content }) =
 		const fallbackSrc = 'http://www.gravatar.com/avatar';
 		let src = '';
 		switch (role) {
-			case Conversation.Role.ASSISTANT:
-			case Conversation.Role.SYSTEM:
+			case Role.ASSISTANT:
+			case Role.SYSTEM:
 				src = logo.src;
 				break;
-			case Conversation.Role.USER:
+			case Role.USER:
 				src = user ? user.picture : fallbackSrc;
 				break;
 			default:
@@ -26,8 +34,15 @@ export const ChatMessage: React.FC<Conversation.Message> = ({ role, content }) =
 		return <Image src={src} width={30} height={30} alt={`${role} avatar`} className="avatar" />;
 	}, [user, role]);
 
+	const typeClass = React.useMemo(() => {
+		if (typeof type !== 'undefined') {
+			return ` message-${type}`;
+		}
+		return '';
+	}, [type]);
+
 	return (
-		<li className={`message message-${role}`}>
+		<li className={`message message-${role}${typeClass}`}>
 			{avatar}
 			{content ? (
 				<div className="prose prose-invert">

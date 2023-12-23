@@ -1,22 +1,11 @@
 import React from 'react';
 import Head from 'next/head';
 import { ChatSidebar, ChatMessage, ChatMessageForm } from 'components';
-import { Conversation } from 'context';
+import { useConversationContext } from 'context/conversation';
 
 export default function ChatPage() {
 	//
-	const { conversation, answerStream } = Conversation.useConversationContext();
-
-	const disabled = React.useMemo(() => {
-		if (answerStream instanceof Conversation.AnswerMessage) {
-			return !answerStream.done;
-		}
-		return false;
-	}, [answerStream]);
-
-	React.useEffect(() => {
-		console.log('answerStream', answerStream);
-	}, [answerStream]);
+	const { conversation, answerStream, systemMessage } = useConversationContext();
 
 	return (
 		<>
@@ -31,8 +20,9 @@ export default function ChatPage() {
 							<ChatMessage key={message.id} {...message} />
 						))}
 						{answerStream && <ChatMessage {...answerStream} />}
+						{systemMessage && <ChatMessage {...systemMessage} />}
 					</ul>
-					<ChatMessageForm disabled={disabled} />
+					<ChatMessageForm />
 				</div>
 			</div>
 		</>

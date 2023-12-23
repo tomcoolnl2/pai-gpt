@@ -1,20 +1,26 @@
 import React from 'react';
-import { QuestionMessage } from 'context/conversation/ChatMessage';
-import { Conversation } from 'context';
+import { AnswerMessage } from 'context/conversation/ConversationMessage';
+import { useConversationContext } from 'context/conversation';
 
-export const ChatMessageForm: React.FC<{ disabled: boolean }> = ({ disabled }) => {
+export const ChatMessageForm: React.FC = () => {
 	//
 	const [question, setQuestion] = React.useState<string>('');
-	const { submitQuestion, addToConversation } = Conversation.useConversationContext();
+	const { answerStream, submitQuestion } = useConversationContext();
+
+	const disabled = React.useMemo(() => {
+		if (answerStream instanceof AnswerMessage) {
+			return !answerStream.done;
+		}
+		return false;
+	}, [answerStream]);
 
 	const handleSubmit = React.useCallback(
 		async (event: React.FormEvent<HTMLFormElement>) => {
 			event.preventDefault();
-			addToConversation(new QuestionMessage(question));
 			submitQuestion(question);
 			setQuestion('');
 		},
-		[question, addToConversation, submitQuestion],
+		[question, submitQuestion],
 	);
 
 	const handleKeyPress = React.useCallback(

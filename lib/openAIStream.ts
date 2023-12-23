@@ -1,15 +1,9 @@
 import { createParser, ParsedEvent, ReconnectInterval } from 'eventsource-parser';
-
-export type ChatGPTAgent = 'user' | 'system';
-
-export interface ChatGPTMessage {
-	role: ChatGPTAgent;
-	content: string;
-}
+import { Conversation } from 'context';
 
 export interface OpenAIStreamPayload {
 	model: string;
-	messages: ChatGPTMessage[];
+	messages: Conversation.Prompt[];
 	temperature: number;
 	top_p: number;
 	frequency_penalty: number;
@@ -20,6 +14,7 @@ export interface OpenAIStreamPayload {
 }
 
 export async function OpenAIStream(payload: OpenAIStreamPayload) {
+	//
 	const encoder = new TextEncoder();
 	const decoder = new TextDecoder();
 
@@ -54,7 +49,7 @@ export async function OpenAIStream(payload: OpenAIStreamPayload) {
 						}
 						const queue = encoder.encode(text);
 						controller.enqueue(queue);
-						counter++;
+						counter += 1;
 					} catch (e) {
 						// maybe parse error
 						controller.error(e);

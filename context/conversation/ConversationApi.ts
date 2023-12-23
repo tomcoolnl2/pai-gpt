@@ -1,12 +1,16 @@
-import { Message, AnswerMessage, SystemErrorMessage } from './ChatMessage';
+import { Message, Prompt, Role, AnswerMessage, SystemErrorMessage } from './ConversationMessage';
 
 /**
  * Represents a class handling chat message API interactions.
  */
 export class ConversationApi {
+	//
+	private headers = {
+		'Content-Type': 'application/json',
+	};
 	/**
 	 * Creates an instance of ConversationApi.
-	 * @param {React.Dispatch<React.SetStateAction<string>>} answerStreamCallback - Callback function to handle streamed content.
+	 * @param {React.Dispatch<React.SetStateAction<strMessage | nulling>>} answerStreamCallback - Callback function to handle streamed content.
 	 */
 	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {}
 
@@ -16,11 +20,26 @@ export class ConversationApi {
 	 * @returns {string} - The generated prompt.
 	 * @private
 	 */
-	private generatePrompt(question: string): string {
-		return `
+	private generatePrompt(question: string): Prompt {
+		const content = `
             Q: ${question}.
             Remove the preceding 'A:'
         `;
+		return {
+			role: Role.USER,
+			question,
+			content,
+		};
+	}
+
+	private formatAnswer(prevAnswer: Message, chunk: string, done: boolean): AnswerMessage {
+		const answer = new AnswerMessage();
+		if (prevAnswer instanceof AnswerMessage) {
+			Object.assign(answer, prevAnswer);
+		}
+		answer.content += chunk;
+		answer.done = done;
+		return answer;
 	}
 
 	/**
@@ -46,17 +65,16 @@ export class ConversationApi {
 			}
 
 			if (value || done) {
-				this.answerStreamCallback((prevAnswer) => {
-					const answer = new AnswerMessage();
-					if (prevAnswer instanceof AnswerMessage) {
-						Object.assign(answer, prevAnswer);
-					}
-					answer.content += chunk;
-					answer.done = done;
-					return answer;
+				this.answerStreamCallback((answer) => {
+					return this.formatAnswer(answer, chunk, done);
 				});
 			}
 		}
+	}
+
+	private handleError(message: string): void {
+		const systemMessage = new SystemErrorMessage(message);
+		this.answerStreamCallback(systemMessage);
 	}
 
 	/**
@@ -70,29 +88,46 @@ export class ConversationApi {
 			const prompt = this.generatePrompt(question);
 			const response = await fetch('/api/chat/sendMessage', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
+				headers: this.headers,
 				body: JSON.stringify({ prompt }),
 			});
 
 			if (!response.ok) {
-				const systemMessage = new SystemErrorMessage(response.statusText);
-				this.answerStreamCallback(systemMessage);
+				this.handleError(response.statusText);
 			} else if (!response.body) {
-				const systemMessage = new SystemErrorMessage('Response data failed...');
-				this.answerStreamCallback(systemMessage);
-			} else if (!response.body) {
+				this.handleError('Response data failed...');
 			} else {
 				this.generateStream(response.body);
 			}
 			//
 		} catch (error: unknown) {
-			const fallbackContent = 'Error sending message...';
-			const messageError = error instanceof Error ? error.message : fallbackContent;
-			const systemMessage = new SystemErrorMessage(messageError);
-			this.answerStreamCallback(systemMessage);
-			console.error(fallbackContent, error);
+			const messageError = error instanceof Error ? error.message : 'Error sending message...';
+			this.handleError(messageError);
+		}
+	}
+
+	public async createConversation(question: string) {}
+
+	public async getConversationList() {
+		try {
+			const response = await fetch('/api/chat/getConversationList', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (!response.ok) {
+				this.handleError(response.statusText);
+			} else if (!response.body) {
+				this.handleError('Response data failed...');
+			} else {
+				console.log('getConversationList', response.body);
+			}
+			//
+		} catch (error: unknown) {
+			const messageError = error instanceof Error ? error.message : 'Error retrieving a ist of conversations...';
+			this.handleError(messageError);
 		}
 	}
 }
