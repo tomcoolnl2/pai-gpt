@@ -1,4 +1,4 @@
-import { ConversationRole } from 'context/conversation';
+import { Role } from 'context/conversation';
 import { ChatGPTMessage, OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
 
 if (!process.env.OPENAI_API_KEY) {
@@ -12,7 +12,7 @@ export const config = {
 export default async function handler(req: Request): Promise<Response> {
 	//
 	const systemMessage = {
-		role: ConversationRole.SYSTEM,
+		role: Role.SYSTEM,
 		content: `
 			Your name is PAI-GPT. 
 			You are a Personal Assistence Intelligence. 
@@ -29,7 +29,7 @@ export default async function handler(req: Request): Promise<Response> {
 		};
 
 		const userMessage = {
-			role: ConversationRole.USER,
+			role: Role.USER,
 			content: prompt,
 		};
 

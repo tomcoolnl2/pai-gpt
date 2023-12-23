@@ -43,4 +43,14 @@
     .avatar {
         @apply rounded-sm
     }
+    .loading {
+        @apply 
+            text-2xl 
+            after:inline-block 
+            after:overflow-hidden 
+            after:align-bottom 
+            after:content-['\2026'] 
+            after:w-0 
+            after:animate-ellipsis
+    }
 }

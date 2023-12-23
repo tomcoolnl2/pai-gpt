@@ -9,7 +9,16 @@ module.exports = {
 		'./src/**/*.{js,ts,jsx,tsx}',
 	],
 	theme: {
-		extend: {},
+		extend: {
+			animation: {
+				ellipsis: 'ellipsis steps(4,end) 900ms infinite',
+			},
+			keyframes: {
+				ellipsis: {
+				  	'to': { width: '1.25em' },
+				}
+			}
+		},
 	},
 	plugins: [require('@tailwindcss/typography')],
 };

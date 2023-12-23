@@ -2,30 +2,26 @@ import React from 'react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { ConversationRole, Message } from 'context/conversation/ChatMessage';
+import { Conversation } from 'context';
 import logo from 'public/logo.svg';
 
-type Props = Omit<Message, 'id'>;
-
-export const ChatMessage: React.FC<Props> = ({ role, content }) => {
+export const ChatMessage: React.FC<Conversation.Message> = ({ role, content }) => {
 	//
 	const { user } = useUser();
 
-	console.log(role);
-
 	const avatar = React.useMemo(() => {
-		const defaultSrc = 'http://www.gravatar.com/avatar';
+		const fallbackSrc = 'http://www.gravatar.com/avatar';
 		let src = '';
 		switch (role) {
-			case ConversationRole.ASSISTANT:
-			case ConversationRole.SYSTEM:
+			case Conversation.Role.ASSISTANT:
+			case Conversation.Role.SYSTEM:
 				src = logo.src;
 				break;
-			case ConversationRole.USER:
-				src = user ? user.picture : defaultSrc;
+			case Conversation.Role.USER:
+				src = user ? user.picture : fallbackSrc;
 				break;
 			default:
-				src = defaultSrc;
+				src = fallbackSrc;
 		}
 		return <Image src={src} width={30} height={30} alt={`${role} avatar`} className="avatar" />;
 	}, [user, role]);
@@ -33,9 +29,13 @@ export const ChatMessage: React.FC<Props> = ({ role, content }) => {
 	return (
 		<li className={`message message-${role}`}>
 			{avatar}
-			<div className="prose prose-invert">
-				<ReactMarkdown>{content}</ReactMarkdown>
-			</div>
+			{content ? (
+				<div className="prose prose-invert">
+					<ReactMarkdown>{content}</ReactMarkdown>
+				</div>
+			) : (
+				<div className="loading" />
+			)}
 		</li>
 	);
 };

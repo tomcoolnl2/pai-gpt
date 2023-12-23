@@ -30,17 +30,12 @@ interface Props {
 
 export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	//
-	const [answerStream, setAnswerStream] = React.useState<AnswerMessage | SystemMessage>(null);
+	const [answerStream, setAnswerStream] = React.useState<Message>(null);
 	const [conversation, setConversation] = React.useState(new ConversationSet<Message>());
 	const { current: api } = React.useRef(new ConversationApi(setAnswerStream));
 
 	React.useEffect(() => {
-		// for development purposes
-		demoConversation.map((message) => conversation.add(message as Message));
-	}, []);
-
-	React.useEffect(() => {
-		if (answerStream?.done && answerStream?.content.length) {
+		if (answerStream?.done) {
 			addToConversation(answerStream);
 			setAnswerStream(null);
 		}
@@ -48,6 +43,7 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 
 	const submitQuestion = React.useCallback(
 		(question: string) => {
+			setAnswerStream(new AnswerMessage());
 			api.sendMessage(question);
 		},
 		[api],

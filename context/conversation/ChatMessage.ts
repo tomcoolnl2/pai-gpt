@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 
-export enum ConversationRole {
+export enum Role {
 	SYSTEM = 'system',
 	USER = 'user',
 	ASSISTANT = 'assistant',
@@ -10,9 +10,11 @@ export abstract class Message {
 	//
 	public id: string;
 
-	abstract readonly role: ConversationRole;
+	abstract readonly role: Role;
 
 	public content: string;
+
+	public done: boolean = true;
 
 	constructor() {
 		this.id = uuid();
@@ -21,7 +23,7 @@ export abstract class Message {
 
 export class QuestionMessage extends Message {
 	//
-	readonly role = ConversationRole.USER;
+	readonly role = Role.USER;
 
 	constructor(public content: string) {
 		super();
@@ -30,11 +32,12 @@ export class QuestionMessage extends Message {
 
 export class AnswerMessage extends Message {
 	//
-	readonly role = ConversationRole.ASSISTANT;
+	readonly role = Role.ASSISTANT;
 
-	public done: boolean = true;
-
-	constructor(public content: string = '') {
+	constructor(
+		public content: string = '',
+		public done: boolean = false,
+	) {
 		super();
 	}
 }
@@ -49,9 +52,7 @@ export abstract class SystemMessage extends Message {
 	//
 	abstract readonly type: SystemMessageType;
 
-	readonly role = ConversationRole.SYSTEM;
-
-	readonly done: boolean = true;
+	readonly role = Role.SYSTEM;
 
 	constructor() {
 		super();

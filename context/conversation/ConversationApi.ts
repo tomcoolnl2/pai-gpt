@@ -30,10 +30,6 @@ export class ConversationApi {
 	 */
 	private async generateStream(data: ReadableStream<Uint8Array>): Promise<void> {
 		//
-		if (!data) {
-			return;
-		}
-
 		const reader = data.getReader();
 		const decoder = new TextDecoder();
 		let doneReading = false;
@@ -83,12 +79,16 @@ export class ConversationApi {
 			if (!response.ok) {
 				const systemMessage = new SystemErrorMessage(response.statusText);
 				this.answerStreamCallback(systemMessage);
+			} else if (!response.body) {
+				const systemMessage = new SystemErrorMessage('Response data failed...');
+				this.answerStreamCallback(systemMessage);
+			} else if (!response.body) {
 			} else {
 				this.generateStream(response.body);
 			}
 			//
 		} catch (error: unknown) {
-			const fallbackContent = 'Error sending message';
+			const fallbackContent = 'Error sending message...';
 			const messageError = error instanceof Error ? error.message : fallbackContent;
 			const systemMessage = new SystemErrorMessage(messageError);
 			this.answerStreamCallback(systemMessage);
