@@ -30,7 +30,6 @@ export default async function getConversationList(
 				{
 					projection: {
 						userId: 0, // omit
-						messages: 0, // omit
 					},
 				},
 			)

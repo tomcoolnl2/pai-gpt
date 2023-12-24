@@ -1,9 +1,9 @@
 import { createParser, ParsedEvent, ReconnectInterval } from 'eventsource-parser';
-import { Conversation } from 'context';
+import { Prompt } from 'model';
 
 export interface OpenAIStreamPayload {
 	model: string;
-	messages: Conversation.Prompt[];
+	messages: Prompt[];
 	temperature: number;
 	top_p: number;
 	frequency_penalty: number;

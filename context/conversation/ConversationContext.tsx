@@ -5,7 +5,7 @@ import { ConversationApi } from './ConversationApi';
 
 interface ConversationState {
 	conversations: Conversation[] | null;
-	currentConversation: ConversationSet<Message> | null;
+	currentConversation: Conversation | null;
 	answerStream: Message | null;
 	systemMessage: SystemMessage | null;
 	sendMessage: (question: string) => void;
@@ -32,7 +32,7 @@ interface Props {
 export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	//
 	const [conversations, setConversations] = React.useState<Conversation[]>(null);
-	const [currentConversation, setCurrentConversation] = React.useState(new ConversationSet<Message>());
+	const [currentConversation, setCurrentConversation] = React.useState(null);
 	const [answerStream, setAnswerStream] = React.useState<Message>(null);
 	const [systemMessage, setSystemMessage] = React.useState<SystemMessage>(null);
 	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
@@ -52,32 +52,41 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 		getConversations();
 	}, []);
 
-	// const createConversation = React.useCallback(() => {
-	// 	return conversationApi.createConversation();
-	// }, []);
-
 	const sendMessage = React.useCallback(
-		(question: string) => {
+		async (question: string) => {
 			if (question.length > 3) {
 				setSystemMessage(null);
-				addToConversation(new QuestionMessage(question));
+				const message = new QuestionMessage(question);
+				if (!currentConversation) {
+					const conversation = await conversationApi.createConversation(message.payload);
+					setCurrentConversation(conversation);
+					setConversations((prev) => [...prev, conversation]);
+				} else {
+					addToConversation(message);
+				}
 				setAnswerStream(new AnswerMessage());
-				conversationApi.sendMessage(question);
+				conversationApi.sendMessage(message.payload);
 			} else {
 				const warning = 'Tip: For better responses, aim for questions longer than 3 characters.';
 				const message = new SystemWarningMessage(warning);
 				setSystemMessage(message);
 			}
 		},
-		[conversationApi],
+		[currentConversation, conversationApi],
 	);
 
-	const addToConversation = React.useCallback((message: Message) => {
-		setCurrentConversation((prevConv) => {
-			const conversation = new ConversationSet([...prevConv]);
-			return conversation.add(message);
-		});
-	}, []);
+	const addToConversation = React.useCallback(
+		async (message: Message) => {
+			await conversationApi.addMessage(currentConversation.id, message.payload);
+			setCurrentConversation((prevConversation: Conversation) => {
+				const conversation = new Conversation(prevConversation.id, prevConversation.title);
+				Object.assign(conversation, prevConversation);
+				conversation.messages.add(message);
+				return conversation;
+			});
+		},
+		[currentConversation],
+	);
 
 	const contextValue = {
 		conversations,

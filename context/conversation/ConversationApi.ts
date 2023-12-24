@@ -1,10 +1,16 @@
-import { Message, Prompt, Role, AnswerMessage, SystemErrorMessage, Conversation } from 'model';
+import { Message, MessagePayload, AnswerMessage, SystemErrorMessage, Conversation, QuestionMessage } from 'model';
+import { ConversationSet } from 'model/ConversationSet';
 
 /**
  * Represents a class handling chat message API interactions.
  */
 export class ConversationApi {
-	//
+	/**
+	 * Creates an instance of ConversationApi.
+	 * @param {React.Dispatch<React.SetStateAction<strMessage | nulling>>} answerStreamCallback - Callback function to handle streamed content.
+	 */
+	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {}
+
 	private defaultRequest = {
 		method: 'POST',
 		headers: {
@@ -26,30 +32,6 @@ export class ConversationApi {
 	private handleError(message: string): void {
 		const systemMessage = new SystemErrorMessage(message);
 		this.answerStreamCallback(systemMessage);
-	}
-
-	/**
-	 * Creates an instance of ConversationApi.
-	 * @param {React.Dispatch<React.SetStateAction<strMessage | nulling>>} answerStreamCallback - Callback function to handle streamed content.
-	 */
-	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {}
-
-	/**
-	 * Generates a prompt based on the provided question.
-	 * @param {string} question - The question to generate the prompt.
-	 * @returns {string} - The generated prompt.
-	 * @private
-	 */
-	private generatePrompt(question: string): Prompt {
-		const content = `
-            Q: ${question}.
-            Remove the preceding 'A:'
-        `;
-		return {
-			role: Role.USER,
-			question,
-			content,
-		};
 	}
 
 	private formatAnswer(prevAnswer: Message, chunk: string, done: boolean): AnswerMessage {
@@ -92,45 +74,65 @@ export class ConversationApi {
 		}
 	}
 
-	/**
-	 * Sends a message based on the provided question and handles the response.
-	 * @param {string} question - The question to send as a message.
-	 * @returns {Promise<void>} - Promise that resolves when the message is sent.
-	 * @public
-	 */
-	public async sendMessage(question: string): Promise<void> {
+	public async sendMessage(payload: MessagePayload): Promise<void> {
 		try {
-			const prompt = this.generatePrompt(question);
 			const response = await fetch('/api/chat/sendMessage', {
 				...this.defaultRequest,
-				body: JSON.stringify({ prompt }),
+				body: JSON.stringify({ payload }),
 			});
 
 			if (this.responseIsValid(response)) {
 				this.generateStream(response.body);
 			}
-			//
 		} catch (error: unknown) {
 			const messageError = error instanceof Error ? error.message : 'Error sending message...';
 			this.handleError(messageError);
 		}
 	}
 
-	// public async createConversation(): Promise<boolean> {
-	// 	const response = await fetch('/api/chat/createConversation', this.defaultRequest);
-	// 	console.log('createConversation', response);
-	// 	return true;
-	// }
+	public async createConversation(payload: MessagePayload): Promise<Conversation> {
+		try {
+			const response = await fetch('/api/chat/createConversation', {
+				...this.defaultRequest,
+				body: JSON.stringify({ payload }),
+			});
+			if (this.responseIsValid(response)) {
+				const conversation = await response.json();
+				const message = new QuestionMessage(payload.content);
+				const messages = new ConversationSet([message]);
+				return new Conversation(conversation._id, conversation.title, messages);
+			}
+		} catch (error: unknown) {
+			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
+			this.handleError(messageError);
+		}
+	}
 
 	public async getConversationList(): Promise<Conversation[]> {
 		try {
-			//
 			const response = await fetch('/api/chat/getConversationList', this.defaultRequest);
 			if (this.responseIsValid(response)) {
 				const data = await response.json();
 				return data.conversations.map(({ _id, title }) => new Conversation(_id, title));
 			}
-			//
+		} catch (error: unknown) {
+			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
+			this.handleError(messageError);
+		}
+	}
+
+	public async addMessage(conversationId: string, payload: MessagePayload): Promise<boolean> {
+		try {
+			const response = await fetch('/api/chat/addMessage', {
+				...this.defaultRequest,
+				body: JSON.stringify({ conversationId, payload }),
+			});
+			if (this.responseIsValid(response)) {
+				const data = await response.json();
+				console.log(data);
+				return true;
+			}
+			return false;
 		} catch (error: unknown) {
 			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
 			this.handleError(messageError);

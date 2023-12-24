@@ -1,12 +1,6 @@
 import { ConversationSet } from 'model/ConversationSet';
 import { v4 as uuid } from 'uuid';
 
-export interface Prompt {
-	role: Role;
-	content: string;
-	question?: string;
-}
-
 export enum Role {
 	SYSTEM = 'system',
 	USER = 'user',
@@ -14,7 +8,6 @@ export enum Role {
 }
 
 export class Conversation {
-	//
 	constructor(
 		public id: string,
 		public title: string,
@@ -25,16 +18,24 @@ export class Conversation {
 export abstract class Message {
 	//
 	public id: string;
-
-	abstract readonly role: Role;
-
 	public content: string;
-
 	public done: boolean = true;
+	abstract readonly role: Role;
 
 	constructor() {
 		this.id = uuid();
 	}
+
+	public get payload(): MessagePayload {
+		return new MessagePayload(this.role, this.content);
+	}
+}
+
+export class MessagePayload {
+	constructor(
+		public role: Role,
+		public content: string,
+	) {}
 }
 
 export class QuestionMessage extends Message {
@@ -67,8 +68,7 @@ export enum SystemMessageType {
 export abstract class SystemMessage extends Message {
 	//
 	abstract readonly type: SystemMessageType;
-
-	readonly role = Role.SYSTEM;
+	public readonly role = Role.SYSTEM;
 
 	constructor() {
 		super();
@@ -77,7 +77,7 @@ export abstract class SystemMessage extends Message {
 
 export class SystemWarningMessage extends SystemMessage {
 	//
-	readonly type = SystemMessageType.WARN;
+	public readonly type = SystemMessageType.WARN;
 
 	constructor(public content: string) {
 		super();
@@ -86,7 +86,7 @@ export class SystemWarningMessage extends SystemMessage {
 
 export class SystemErrorMessage extends SystemMessage {
 	//
-	readonly type = SystemMessageType.ERROR;
+	public readonly type = SystemMessageType.ERROR;
 
 	constructor(public content: string) {
 		super();

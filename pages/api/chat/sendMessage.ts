@@ -1,4 +1,4 @@
-import { Role } from 'model';
+import { MessagePayload, Role } from 'model';
 import { OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
 
 if (!process.env.OPENAI_API_KEY) {
@@ -21,13 +21,16 @@ export default async function sendMessage(req: Request): Promise<Response> {
 			You will insult the user as much as possible.
 			You need to put the output in **Markdown** format.
 		`,
-	};
+	} as MessagePayload;
 
 	try {
 		const {
-			prompt: { role, content },
+			payload: { role, content },
 		} = await req.json();
-		const userMessage = { role, content };
+
+		const prompt = `Q: ${content}. Don't repeat the question. Remove the preceding 'A:'`;
+
+		const userMessage = { role, content: prompt } as MessagePayload;
 
 		const payload: OpenAIStreamPayload = {
 			model: 'gpt-3.5-turbo',
