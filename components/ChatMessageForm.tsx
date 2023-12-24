@@ -1,11 +1,11 @@
 import React from 'react';
-import { AnswerMessage } from 'context/conversation/ConversationMessage';
+import { AnswerMessage } from 'model';
 import { useConversationContext } from 'context/conversation';
 
 export const ChatMessageForm: React.FC = () => {
 	//
 	const [question, setQuestion] = React.useState<string>('');
-	const { answerStream, submitQuestion } = useConversationContext();
+	const { answerStream, sendMessage } = useConversationContext();
 
 	const disabled = React.useMemo(() => {
 		if (answerStream instanceof AnswerMessage) {
@@ -17,10 +17,10 @@ export const ChatMessageForm: React.FC = () => {
 	const handleSubmit = React.useCallback(
 		async (event: React.FormEvent<HTMLFormElement>) => {
 			event.preventDefault();
-			submitQuestion(question);
+			sendMessage(question);
 			setQuestion('');
 		},
-		[question, submitQuestion],
+		[question, sendMessage],
 	);
 
 	const handleKeyPress = React.useCallback(

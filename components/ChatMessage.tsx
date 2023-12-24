@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { Role, SystemMessageType } from 'context/conversation';
+import { Role, SystemMessageType } from 'model';
 import logo from 'public/logo.svg';
 
 type Props = {
@@ -35,10 +35,7 @@ export const ChatMessage: React.FC<Props> = ({ role, content, type }) => {
 	}, [user, role]);
 
 	const typeClass = React.useMemo(() => {
-		if (typeof type !== 'undefined') {
-			return ` message-${type}`;
-		}
-		return '';
+		return type ? ` message-${type}` : '';
 	}, [type]);
 
 	return (

@@ -1,13 +1,33 @@
-import { Message, Prompt, Role, AnswerMessage, SystemErrorMessage } from './ConversationMessage';
+import { Message, Prompt, Role, AnswerMessage, SystemErrorMessage, Conversation } from 'model';
 
 /**
  * Represents a class handling chat message API interactions.
  */
 export class ConversationApi {
 	//
-	private headers = {
-		'Content-Type': 'application/json',
+	private defaultRequest = {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
 	};
+
+	private responseIsValid(response: Response): boolean {
+		if (!response.ok) {
+			this.handleError(response.statusText);
+			return false;
+		} else if (!response.body) {
+			this.handleError('Invalid response... Please hit any user to proceed!');
+			return false;
+		}
+		return true;
+	}
+
+	private handleError(message: string): void {
+		const systemMessage = new SystemErrorMessage(message);
+		this.answerStreamCallback(systemMessage);
+	}
+
 	/**
 	 * Creates an instance of ConversationApi.
 	 * @param {React.Dispatch<React.SetStateAction<strMessage | nulling>>} answerStreamCallback - Callback function to handle streamed content.
@@ -72,11 +92,6 @@ export class ConversationApi {
 		}
 	}
 
-	private handleError(message: string): void {
-		const systemMessage = new SystemErrorMessage(message);
-		this.answerStreamCallback(systemMessage);
-	}
-
 	/**
 	 * Sends a message based on the provided question and handles the response.
 	 * @param {string} question - The question to send as a message.
@@ -87,16 +102,11 @@ export class ConversationApi {
 		try {
 			const prompt = this.generatePrompt(question);
 			const response = await fetch('/api/chat/sendMessage', {
-				method: 'POST',
-				headers: this.headers,
+				...this.defaultRequest,
 				body: JSON.stringify({ prompt }),
 			});
 
-			if (!response.ok) {
-				this.handleError(response.statusText);
-			} else if (!response.body) {
-				this.handleError('Response data failed...');
-			} else {
+			if (this.responseIsValid(response)) {
 				this.generateStream(response.body);
 			}
 			//
@@ -106,27 +116,23 @@ export class ConversationApi {
 		}
 	}
 
-	public async createConversation(question: string) {}
+	// public async createConversation(): Promise<boolean> {
+	// 	const response = await fetch('/api/chat/createConversation', this.defaultRequest);
+	// 	console.log('createConversation', response);
+	// 	return true;
+	// }
 
-	public async getConversationList() {
+	public async getConversationList(): Promise<Conversation[]> {
 		try {
-			const response = await fetch('/api/chat/getConversationList', {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			});
-
-			if (!response.ok) {
-				this.handleError(response.statusText);
-			} else if (!response.body) {
-				this.handleError('Response data failed...');
-			} else {
-				console.log('getConversationList', response.body);
+			//
+			const response = await fetch('/api/chat/getConversationList', this.defaultRequest);
+			if (this.responseIsValid(response)) {
+				const data = await response.json();
+				return data.conversations.map(({ _id, title }) => new Conversation(_id, title));
 			}
 			//
 		} catch (error: unknown) {
-			const messageError = error instanceof Error ? error.message : 'Error retrieving a ist of conversations...';
+			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
 			this.handleError(messageError);
 		}
 	}

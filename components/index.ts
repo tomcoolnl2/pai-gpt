@@ -1,4 +1,4 @@
 export * from './AnimatedWaves';
-export * from './ChatSidebar';
+export * from './Sidebar';
 export * from './ChatMessageForm';
 export * from './ChatMessage';

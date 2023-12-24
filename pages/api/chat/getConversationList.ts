@@ -1,4 +1,3 @@
-// will be running in a Node environment
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '@auth0/nextjs-auth0';
 import { WithId, Document } from 'mongodb';

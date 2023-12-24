@@ -1,4 +1,4 @@
-import { Role } from 'context/conversation';
+import { Role } from 'model';
 import { OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
 
 if (!process.env.OPENAI_API_KEY) {
@@ -9,7 +9,7 @@ export const config = {
 	runtime: 'edge', // edge functions run in a V8 instance, not Node
 };
 
-export default async function sendMessage(req: Request, res: Response): Promise<Response> {
+export default async function sendMessage(req: Request): Promise<Response> {
 	//
 	const systemMessage = {
 		role: Role.SYSTEM,

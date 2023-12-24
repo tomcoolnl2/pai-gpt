@@ -1,22 +1,22 @@
 import React from 'react';
-import { ConversationSet } from './ConversationSet';
+import { AnswerMessage, Conversation, Message, QuestionMessage, SystemMessage, SystemWarningMessage } from 'model';
+import { ConversationSet } from '../../model/ConversationSet';
 import { ConversationApi } from './ConversationApi';
-import { AnswerMessage, Message, QuestionMessage, SystemMessage, SystemWarningMessage } from './ConversationMessage';
 
 interface ConversationState {
-	conversation: ConversationSet<Message> | null;
+	conversations: Conversation[] | null;
+	currentConversation: ConversationSet<Message> | null;
 	answerStream: Message | null;
 	systemMessage: SystemMessage | null;
-	getConversationList: () => Promise<void>;
-	submitQuestion: (question: string) => void;
+	sendMessage: (question: string) => void;
 }
 
 const initialConversationContext = {
-	conversation: null,
+	conversations: null,
+	currentConversation: null,
 	answerStream: null,
 	systemMessage: null,
-	getConversationList: () => void 0,
-	submitQuestion: () => void 0,
+	sendMessage: () => void 0,
 };
 
 const ConversationContext = React.createContext<ConversationState>(initialConversationContext);
@@ -31,8 +31,9 @@ interface Props {
 
 export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	//
+	const [conversations, setConversations] = React.useState<Conversation[]>(null);
+	const [currentConversation, setCurrentConversation] = React.useState(new ConversationSet<Message>());
 	const [answerStream, setAnswerStream] = React.useState<Message>(null);
-	const [conversation, setConversation] = React.useState(new ConversationSet<Message>());
 	const [systemMessage, setSystemMessage] = React.useState<SystemMessage>(null);
 	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
 
@@ -43,11 +44,19 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 		}
 	}, [answerStream]);
 
-	const getConversationList = React.useCallback(async () => {
-		return await conversationApi.getConversationList();
+	React.useEffect(() => {
+		const getConversations = async () => {
+			const list = await conversationApi.getConversationList();
+			setConversations(list);
+		};
+		getConversations();
 	}, []);
 
-	const submitQuestion = React.useCallback(
+	// const createConversation = React.useCallback(() => {
+	// 	return conversationApi.createConversation();
+	// }, []);
+
+	const sendMessage = React.useCallback(
 		(question: string) => {
 			if (question.length > 3) {
 				setSystemMessage(null);
@@ -64,16 +73,19 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	);
 
 	const addToConversation = React.useCallback((message: Message) => {
-		setConversation((prevConv) => {
+		setCurrentConversation((prevConv) => {
 			const conversation = new ConversationSet([...prevConv]);
 			return conversation.add(message);
 		});
 	}, []);
 
-	const contextValue = React.useMemo(
-		() => ({ answerStream, conversation, systemMessage, getConversationList, submitQuestion }),
-		[answerStream, conversation, systemMessage, getConversationList, submitQuestion],
-	);
+	const contextValue = {
+		conversations,
+		answerStream,
+		currentConversation,
+		systemMessage,
+		sendMessage,
+	};
 
 	return <ConversationContext.Provider value={contextValue}>{children}</ConversationContext.Provider>;
 };

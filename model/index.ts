@@ -1,3 +1,4 @@
+import { ConversationSet } from 'model/ConversationSet';
 import { v4 as uuid } from 'uuid';
 
 export interface Prompt {
@@ -10,6 +11,15 @@ export enum Role {
 	SYSTEM = 'system',
 	USER = 'user',
 	ASSISTANT = 'assistant',
+}
+
+export class Conversation {
+	//
+	constructor(
+		public id: string,
+		public title: string,
+		public messages: ConversationSet<Message> = null,
+	) {}
 }
 
 export abstract class Message {
