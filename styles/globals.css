@@ -9,6 +9,18 @@
 }
 
 @layer components {
+    .spinner {
+        @apply text-gray-200 animate-spin dark:text-gray-600 fill-green-500 w-6 h-6
+    }
+    .sidebar {
+        @apply flex flex-col overflow-hidden bg-gray-900 text-white
+    }
+    .sidebar-list {
+        @apply flex-1 overflow-auto bg-gray-950
+    }
+    .sidebar-item {
+        @apply m-2 p-2 flex items-center gap-4 rounded-md hover:bg-gray-800
+    }
     .btn {
         @apply rounded-md bg-emerald-500 px-4 py-2 text-white hover:bg-emerald-600 disabled:bg-emerald-300
     }

@@ -1,27 +1,38 @@
 import Link from 'next/link';
 import React from 'react';
+import { faMessage, faPlus, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useConversationContext } from 'context/conversation';
-import { Conversation } from 'model';
+import { Spinner } from 'components';
 
 export const Sidebar: React.FC = () => {
 	//
 	const { conversations } = useConversationContext();
 
 	return (
-		<aside className="bg-gray-900 text-white">
-			<Link className="btn" href="/chat">
+		<aside className="sidebar">
+			<Link className="sidebar-item btn" href="/chat">
+				<FontAwesomeIcon icon={faPlus} />
 				New Chat
 			</Link>
-			<ul className="flex-1 overflow-auto bg-gray-950">
-				{conversations &&
+			<ul className="sidebar-list">
+				{conversations ? (
 					conversations.map((conversation) => (
-						<li key={conversation.id} className="overflow-auto">
-							<code>{conversation.id}</code>
+						<li key={conversation.id} className="sidebar-item">
+							<FontAwesomeIcon icon={faMessage} />
 							{conversation.title}
 						</li>
-					))}
+					))
+				) : (
+					<li className="sidebar-item flex-col">
+						<Spinner />
+					</li>
+				)}
 			</ul>
-			<Link href="/api/auth/logout">Logout</Link>
+			<Link className="sidebar-item" href="/api/auth/logout">
+				<FontAwesomeIcon icon={faRightFromBracket} />
+				Logout
+			</Link>
 		</aside>
 	);
 };
