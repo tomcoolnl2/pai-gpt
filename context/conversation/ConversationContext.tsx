@@ -1,6 +1,5 @@
 import React from 'react';
 import { AnswerMessage, Conversation, Message, QuestionMessage, SystemMessage, SystemWarningMessage } from 'model';
-import { ConversationSet } from '../../model/ConversationSet';
 import { ConversationApi } from './ConversationApi';
 
 interface ConversationState {
@@ -9,6 +8,7 @@ interface ConversationState {
 	answerStream: Message | null;
 	systemMessage: SystemMessage | null;
 	sendMessage: (question: string) => void;
+	deleteConversation: (conversationId: string) => Promise<void>;
 }
 
 const initialConversationContext = {
@@ -17,6 +17,7 @@ const initialConversationContext = {
 	answerStream: null,
 	systemMessage: null,
 	sendMessage: () => void 0,
+	deleteConversation: () => void 0,
 };
 
 const ConversationContext = React.createContext<ConversationState>(initialConversationContext);
@@ -85,7 +86,15 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 				return conversation;
 			});
 		},
-		[currentConversation],
+		[currentConversation, conversationApi],
+	);
+
+	const deleteConversation = React.useCallback(
+		async (conversationId: string) => {
+			await conversationApi.deleteConversation(conversationId);
+			setConversations(conversations.filter((conversation) => conversation.id !== conversationId));
+		},
+		[conversations, conversationApi],
 	);
 
 	const contextValue = {
@@ -94,6 +103,7 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 		currentConversation,
 		systemMessage,
 		sendMessage,
+		deleteConversation,
 	};
 
 	return <ConversationContext.Provider value={contextValue}>{children}</ConversationContext.Provider>;

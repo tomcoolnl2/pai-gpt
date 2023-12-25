@@ -21,6 +21,9 @@
     .sidebar-item {
         @apply m-2 p-2 flex items-center gap-4 rounded-md hover:bg-gray-800
     }
+    .sidebar-actions {
+        @apply absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 dark:bg-gray-700
+    }
     .btn {
         @apply rounded-md bg-emerald-500 px-4 py-2 text-white hover:bg-emerald-600 disabled:bg-emerald-300
     }
@@ -68,4 +71,19 @@
             after:w-0 
             after:animate-ellipsis
     }
+    .action-delete {
+        @apply text-xs invisible
+    }
+    .sidebar-item:hover .action-delete {
+        @apply visible
+    }
+    /* .tooltip {
+        @apply visible absolute -top-2 left-full px-3 py-2 text-xs
+    } font-medium text-white bg-gray-900 rounded-lg shadow-sm dark:bg-gray-700;
+    .has-tooltip {
+        @apply relative;
+    }
+    .has-tooltip .tooltip {
+        @apply visible z-50;
+    } */
 }

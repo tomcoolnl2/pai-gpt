@@ -16,8 +16,6 @@ export default async function addMessage(req: NextApiRequest, res: NextApiRespon
 			payload: { content, role },
 		} = req.body;
 
-		console.log('test', req.body);
-
 		const filter: Filter<Document> = {
 			_id: new ObjectId(conversationId),
 			userId: user.sub,
@@ -48,9 +46,7 @@ export default async function addMessage(req: NextApiRequest, res: NextApiRespon
 				_id: conversationResult._id.toString(),
 			},
 		});
-		//
 	} catch (e) {
-		console.log('test', e);
 		res.status(500).json({
 			message: 'An error occured when adding a message to a chat.',
 		});

@@ -103,7 +103,23 @@ export class ConversationApi {
 				return new Conversation(conversation._id, conversation.title, messages);
 			}
 		} catch (error: unknown) {
-			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
+			const messageError = error instanceof Error ? error.message : 'Error creating a conversation...';
+			this.handleError(messageError);
+		}
+	}
+
+	public async deleteConversation(conversationId: string): Promise<any> {
+		try {
+			const response = await fetch('/api/chat/deleteConversation', {
+				...this.defaultRequest,
+				body: JSON.stringify({ conversationId }),
+			});
+			if (this.responseIsValid(response)) {
+				const data = await response.json();
+				console.log('deleteConversation', data);
+			}
+		} catch (error: unknown) {
+			const messageError = error instanceof Error ? error.message : 'Error deleting conversation...';
 			this.handleError(messageError);
 		}
 	}
@@ -127,12 +143,8 @@ export class ConversationApi {
 				...this.defaultRequest,
 				body: JSON.stringify({ conversationId, payload }),
 			});
-			if (this.responseIsValid(response)) {
-				const data = await response.json();
-				console.log(data);
-				return true;
-			}
-			return false;
+			return this.responseIsValid(response);
+			//
 		} catch (error: unknown) {
 			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
 			this.handleError(messageError);

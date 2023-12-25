@@ -3,7 +3,7 @@ import React from 'react';
 import { faMessage, faPlus, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useConversationContext } from 'context/conversation';
-import { Spinner } from 'components';
+import { SidebarItem, Spinner } from 'components';
 
 export const Sidebar: React.FC = () => {
 	//
@@ -15,20 +15,17 @@ export const Sidebar: React.FC = () => {
 				<FontAwesomeIcon icon={faPlus} />
 				New Chat
 			</Link>
-			<ul className="sidebar-list">
-				{conversations ? (
-					conversations.map((conversation) => (
-						<li key={conversation.id} className="sidebar-item">
-							<FontAwesomeIcon icon={faMessage} />
-							{conversation.title}
+			<nav className="sidebar-list">
+				<ul>
+					{conversations ? (
+						conversations.map((conversation) => <SidebarItem key={conversation.id} {...conversation} />)
+					) : (
+						<li className="sidebar-item flex-col">
+							<Spinner />
 						</li>
-					))
-				) : (
-					<li className="sidebar-item flex-col">
-						<Spinner />
-					</li>
-				)}
-			</ul>
+					)}
+				</ul>
+			</nav>
 			<Link className="sidebar-item" href="/api/auth/logout">
 				<FontAwesomeIcon icon={faRightFromBracket} />
 				Logout
