@@ -2,11 +2,12 @@ import Link from 'next/link';
 import React from 'react';
 import { faPlus, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useRouter } from 'next/router';
 import { useConversationContext } from 'context/conversation';
 import { SidebarItem, Spinner, DeleteConversationModal } from 'components';
-
 export const Sidebar: React.FC = () => {
 	//
+	const router = useRouter();
 	const { conversations, deleteConversation } = useConversationContext();
 	const [deleteModalIsOpen, setDeleteModalIsOpen] = React.useState<boolean>(false);
 	const [prospectConversationId, setProspectConversationId] = React.useState<string | null>(null);
@@ -38,6 +39,7 @@ export const Sidebar: React.FC = () => {
 						{conversations ? (
 							conversations.map((conversation) => (
 								<SidebarItem
+									selected={conversation.id === router.query.conversationId?.[0]}
 									openDeleteModal={openDeleteModal}
 									key={conversation.id}
 									{...conversation}

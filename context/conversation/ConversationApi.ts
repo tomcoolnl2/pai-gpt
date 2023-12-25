@@ -1,4 +1,13 @@
-import { Message, MessagePayload, AnswerMessage, SystemErrorMessage, Conversation, QuestionMessage } from 'model';
+import {
+	Message,
+	MessagePayload,
+	AnswerMessage,
+	SystemErrorMessage,
+	Conversation,
+	QuestionMessage,
+	ConversationPayload,
+	roleToConstructor,
+} from 'model';
 import { ConversationSet } from 'model/ConversationSet';
 
 /**
@@ -148,6 +157,27 @@ export class ConversationApi {
 	}
 
 	/**
+	 * Loads a conversation from the server.
+	 * @param {string} conversationId - The ID of the conversation to delete.
+	 * @returns {Promise<boolean>} - A promise that resolves with a boolean indicating deletion success.
+	 */
+	public async getConversation(conversationId: string): Promise<Conversation> {
+		try {
+			const response = await fetch('/api/chat/getConversation', {
+				...this.defaultRequest,
+				body: JSON.stringify({ conversationId }),
+			});
+			if (this.responseIsValid(response)) {
+				const { conversation } = await response.json();
+				return this.parseConversation(conversation);
+			}
+		} catch (error: unknown) {
+			const messageError = error instanceof Error ? error.message : 'Error creating a conversation...';
+			this.handleError(messageError);
+		}
+	}
+
+	/**
 	 * Deletes a conversation.
 	 * @param {string} conversationId - The ID of the conversation to delete.
 	 * @returns {Promise<boolean>} - A promise that resolves with a boolean indicating deletion success.
@@ -200,5 +230,18 @@ export class ConversationApi {
 			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
 			this.handleError(messageError);
 		}
+	}
+
+	/**
+	 * Parses conversation payload into a Conversation object.
+	 * @param {ConversationPayload} param0 - The conversation payload containing _id, title, and messages.
+	 * @returns {Conversation} - Parsed Conversation object.
+	 * @private
+	 */
+	private parseConversation({ _id, title, messages }: ConversationPayload): Conversation {
+		const thread: Message[] = messages.map(({ role, content }) => {
+			return new roleToConstructor[role](content);
+		});
+		return new Conversation(_id, title, new ConversationSet([...thread]));
 	}
 }

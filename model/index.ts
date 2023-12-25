@@ -15,6 +15,12 @@ export class Conversation {
 	) {}
 }
 
+export interface ConversationPayload {
+	_id: string;
+	title: string;
+	messages: MessagePayload[] | null;
+}
+
 export abstract class Message {
 	//
 	public id: string;
@@ -82,3 +88,8 @@ export class SystemWarningMessage extends SystemMessage {
 export class SystemErrorMessage extends SystemMessage {
 	public readonly type = SystemMessageType.ERROR;
 }
+
+export const roleToConstructor: Record<string, new (content: string) => Message> = {
+	[Role.USER]: QuestionMessage,
+	[Role.ASSISTANT]: AnswerMessage,
+};

@@ -21,7 +21,7 @@ export default async function addMessage(req: NextApiRequest, res: NextApiRespon
 			userId: user.sub,
 		};
 
-		const newMessage: Record<string, any> = {
+		const newMessage: Record<string, string> = {
 			role,
 			content,
 		};

@@ -1,5 +1,14 @@
 import React from 'react';
-import { AnswerMessage, Conversation, Message, QuestionMessage, SystemMessage, SystemWarningMessage } from 'model';
+import { useRouter } from 'next/router';
+import {
+	AnswerMessage,
+	Conversation,
+	Message,
+	MessagePayload,
+	QuestionMessage,
+	SystemMessage,
+	SystemWarningMessage,
+} from 'model';
 import { ConversationApi } from './ConversationApi';
 
 interface ConversationState {
@@ -30,13 +39,34 @@ interface Props {
 	children: React.ReactNode;
 }
 
-export const ConversationProvider: React.FC<Props> = ({ children }) => {
+export const ConversationProvider: React.FC<Props> = React.memo(({ children }) => {
 	//
 	const [conversations, setConversations] = React.useState<Conversation[]>(null);
-	const [currentThread, setCurrentThread] = React.useState(null);
+	const [currentThread, setCurrentThread] = React.useState<Conversation>(null);
 	const [answerStream, setAnswerStream] = React.useState<Message>(null);
 	const [systemMessage, setSystemMessage] = React.useState<SystemMessage>(null);
 	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
+	const router = useRouter();
+
+	React.useEffect(() => {
+		(async () => {
+			const list = await conversationApi.getConversationList();
+			setConversations(list);
+		})();
+	}, []);
+
+	React.useEffect(() => {
+		(async () => {
+			const { conversationId: [id = null] = [] } = router.query;
+			if (id == null) {
+				setCurrentThread(null);
+			}
+			if (id && currentThread?.id !== id) {
+				const conversation = await conversationApi.getConversation(id);
+				setCurrentThread(conversation);
+			}
+		})();
+	}, [router.query, currentThread]);
 
 	React.useEffect(() => {
 		if (answerStream?.done) {
@@ -45,13 +75,15 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 		}
 	}, [answerStream]);
 
-	React.useEffect(() => {
-		const getConversations = async () => {
-			const list = await conversationApi.getConversationList();
-			setConversations(list);
-		};
-		getConversations();
-	}, []);
+	const createConversation = React.useCallback(
+		async (payload: MessagePayload) => {
+			const conversation = await conversationApi.createConversation(payload);
+			setCurrentThread(conversation);
+			setConversations((prev) => [...prev, conversation]);
+			router.push(`/chat/${conversation.id}`);
+		},
+		[conversationApi, router],
+	);
 
 	const sendMessage = React.useCallback(
 		async (question: string) => {
@@ -59,21 +91,19 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 				setSystemMessage(null);
 				const message = new QuestionMessage(question);
 				if (!currentThread) {
-					const conversation = await conversationApi.createConversation(message.payload);
-					setCurrentThread(conversation);
-					setConversations((prev) => [...prev, conversation]);
+					await createConversation(message.payload);
 				} else {
 					addToConversation(message);
 				}
 				setAnswerStream(new AnswerMessage());
-				conversationApi.sendMessage(message.payload);
+				await conversationApi.sendMessage(message.payload);
 			} else {
 				const warning = 'Tip: For better responses, aim for questions longer than 3 characters.';
 				const message = new SystemWarningMessage(warning);
 				setSystemMessage(message);
 			}
 		},
-		[currentThread, conversationApi],
+		[currentThread, conversationApi, router],
 	);
 
 	const addToConversation = React.useCallback(
@@ -93,6 +123,7 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 		async (conversationId: string) => {
 			await conversationApi.deleteConversation(conversationId);
 			setConversations(conversations.filter((conversation) => conversation.id !== conversationId));
+			router.push('/chat');
 		},
 		[conversations, conversationApi],
 	);
@@ -107,4 +138,4 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	};
 
 	return <ConversationContext.Provider value={contextValue}>{children}</ConversationContext.Provider>;
-};
+});

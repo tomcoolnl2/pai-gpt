@@ -21,6 +21,9 @@
     .sidebar-item {
         @apply m-2 p-2 flex items-center gap-4 rounded-md hover:bg-gray-800
     }
+    .sidebar-item-selected {
+        @apply bg-gray-800
+    }
     .sidebar-actions {
         @apply absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 dark:bg-gray-700
     }
