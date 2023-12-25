@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { Sidebar, ChatMessageForm, ChatMessage } from 'components';
 import { useConversationContext } from 'context/conversation';
 
-export default function ChatPage() {
+export default function ChatPage({ conversationId }) {
 	//
 	const { currentThread, answerStream, systemMessage } = useConversationContext();
 
@@ -13,7 +13,7 @@ export default function ChatPage() {
 				<title>{currentThread?.title || 'New Chat'}</title>
 			</Head>
 			<div id="modal-root" className="grid h-screen grid-cols-[260px_1fr]">
-				<Sidebar />
+				<Sidebar conversationId={conversationId} />
 				<div className="flex flex-col bg-gray-700 overflow-hidden">
 					<ul className="flex-1 text-white p-10 overflow-scroll">
 						{currentThread &&
@@ -27,3 +27,12 @@ export default function ChatPage() {
 		</>
 	);
 }
+
+export const getServerSideProps = async (ctx) => {
+	const conversationId = ctx.params?.conversationId?.[0] || null;
+	return {
+		props: {
+			conversationId,
+		},
+	};
+};

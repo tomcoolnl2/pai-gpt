@@ -14,7 +14,9 @@ export const SidebarItem: React.FC<Props> = ({ id, title, selected, openDeleteMo
 		<li>
 			<Link href={`/chat/${id}`} className={`sidebar-item${selected ? ' sidebar-item-selected' : ''}`}>
 				<FontAwesomeIcon icon={faMessage} />
-				<span className="truncate w-full">{title}</span>
+				<span className="truncate w-full" title={title}>
+					{title}
+				</span>
 				<FontAwesomeIcon icon={faTrash} className="action-delete" onClick={() => openDeleteModal(id)} />
 			</Link>
 		</li>
