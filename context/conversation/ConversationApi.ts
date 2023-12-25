@@ -2,22 +2,37 @@ import { Message, MessagePayload, AnswerMessage, SystemErrorMessage, Conversatio
 import { ConversationSet } from 'model/ConversationSet';
 
 /**
- * Represents a class handling chat message API interactions.
+ * Handles API interactions related to conversations.
  */
 export class ConversationApi {
 	/**
-	 * Creates an instance of ConversationApi.
-	 * @param {React.Dispatch<React.SetStateAction<strMessage | nulling>>} answerStreamCallback - Callback function to handle streamed content.
+	 * Creates a new ConversationApi instance.
+	 * @param {React.Dispatch<React.SetStateAction<Message | null>>} answerStreamCallback - Callback function to handle message updates.
 	 */
-	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {}
+	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {
+		//
+	}
 
-	private defaultRequest = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	};
+	/**
+	 * Provides the default request configuration for API calls.
+	 * @type {Object}
+	 * @private
+	 */
+	private get defaultRequest() {
+		return {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		};
+	}
 
+	/**
+	 * Checks if the response is valid.
+	 * @param {Response} response - The response to check.
+	 * @returns {boolean} - True if the response is valid, otherwise false.
+	 * @private
+	 */
 	private responseIsValid(response: Response): boolean {
 		if (!response.ok) {
 			this.handleError(response.statusText);
@@ -29,11 +44,24 @@ export class ConversationApi {
 		return true;
 	}
 
+	/**
+	 * Handles errors by sending a system error message.
+	 * @param {string} message - The error message to handle.
+	 * @private
+	 */
 	private handleError(message: string): void {
 		const systemMessage = new SystemErrorMessage(message);
 		this.answerStreamCallback(systemMessage);
 	}
 
+	/**
+	 * Formats an answer message.
+	 * @param {Message} prevAnswer - The previous answer message.
+	 * @param {string} chunk - The chunk of data to format.
+	 * @param {boolean} done - Indicates if reading is complete.
+	 * @returns {AnswerMessage} - The formatted answer message.
+	 * @private
+	 */
 	private formatAnswer(prevAnswer: Message, chunk: string, done: boolean): AnswerMessage {
 		const answer = new AnswerMessage();
 		if (prevAnswer instanceof AnswerMessage) {
@@ -45,9 +73,10 @@ export class ConversationApi {
 	}
 
 	/**
-	 * Asynchronously generates a stream of data from a ReadableStream and invokes a callback with accumulated content.
-	 * @param {ReadableStream<Uint8Array>} data - The ReadableStream containing Uint8Array data.
-	 * @returns {Promise<void>} A Promise that resolves once the stream processing is completed.
+	 * Generates a message stream from the provided data.
+	 * @param {ReadableStream<Uint8Array>} data - The data stream to generate from.
+	 * @returns {Promise<void>} - A promise that resolves when the stream generation is complete.
+	 * @private
 	 */
 	private async generateStream(data: ReadableStream<Uint8Array>): Promise<void> {
 		//
@@ -74,6 +103,11 @@ export class ConversationApi {
 		}
 	}
 
+	/**
+	 * Sends a message.
+	 * @param {MessagePayload} payload - The message payload to send.
+	 * @returns {Promise<void>} - A promise that resolves when the message is sent.
+	 */
 	public async sendMessage(payload: MessagePayload): Promise<void> {
 		try {
 			const response = await fetch('/api/chat/sendMessage', {
@@ -90,6 +124,11 @@ export class ConversationApi {
 		}
 	}
 
+	/**
+	 * Creates a new conversation.
+	 * @param {MessagePayload} payload - The payload for creating the conversation.
+	 * @returns {Promise<Conversation>} - A promise that resolves with the created conversation.
+	 */
 	public async createConversation(payload: MessagePayload): Promise<Conversation> {
 		try {
 			const response = await fetch('/api/chat/createConversation', {
@@ -108,22 +147,28 @@ export class ConversationApi {
 		}
 	}
 
-	public async deleteConversation(conversationId: string): Promise<any> {
+	/**
+	 * Deletes a conversation.
+	 * @param {string} conversationId - The ID of the conversation to delete.
+	 * @returns {Promise<boolean>} - A promise that resolves with a boolean indicating deletion success.
+	 */
+	public async deleteConversation(conversationId: string): Promise<boolean> {
 		try {
 			const response = await fetch('/api/chat/deleteConversation', {
 				...this.defaultRequest,
 				body: JSON.stringify({ conversationId }),
 			});
-			if (this.responseIsValid(response)) {
-				const data = await response.json();
-				console.log('deleteConversation', data);
-			}
+			return this.responseIsValid(response);
 		} catch (error: unknown) {
 			const messageError = error instanceof Error ? error.message : 'Error deleting conversation...';
 			this.handleError(messageError);
 		}
 	}
 
+	/**
+	 * Retrieves a list of conversations.
+	 * @returns {Promise<Conversation[]>} - A promise that resolves with an array of conversations.
+	 */
 	public async getConversationList(): Promise<Conversation[]> {
 		try {
 			const response = await fetch('/api/chat/getConversationList', this.defaultRequest);
@@ -137,6 +182,12 @@ export class ConversationApi {
 		}
 	}
 
+	/**
+	 * Adds a message to a conversation.
+	 * @param {string} conversationId - The ID of the conversation to add the message to.
+	 * @param {MessagePayload} payload - The payload for the message to add.
+	 * @returns {Promise<boolean>} - A promise that resolves with a boolean indicating success.
+	 */
 	public async addMessage(conversationId: string, payload: MessagePayload): Promise<boolean> {
 		try {
 			const response = await fetch('/api/chat/addMessage', {

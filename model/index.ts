@@ -70,25 +70,15 @@ export abstract class SystemMessage extends Message {
 	abstract readonly type: SystemMessageType;
 	public readonly role = Role.SYSTEM;
 
-	constructor() {
+	constructor(public content: string) {
 		super();
 	}
 }
 
 export class SystemWarningMessage extends SystemMessage {
-	//
 	public readonly type = SystemMessageType.WARN;
-
-	constructor(public content: string) {
-		super();
-	}
 }
 
 export class SystemErrorMessage extends SystemMessage {
-	//
 	public readonly type = SystemMessageType.ERROR;
-
-	constructor(public content: string) {
-		super();
-	}
 }

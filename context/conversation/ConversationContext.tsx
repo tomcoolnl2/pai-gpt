@@ -4,7 +4,7 @@ import { ConversationApi } from './ConversationApi';
 
 interface ConversationState {
 	conversations: Conversation[] | null;
-	currentConversation: Conversation | null;
+	currentThread: Conversation | null;
 	answerStream: Message | null;
 	systemMessage: SystemMessage | null;
 	sendMessage: (question: string) => void;
@@ -13,7 +13,7 @@ interface ConversationState {
 
 const initialConversationContext = {
 	conversations: null,
-	currentConversation: null,
+	currentThread: null,
 	answerStream: null,
 	systemMessage: null,
 	sendMessage: () => void 0,
@@ -33,7 +33,7 @@ interface Props {
 export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	//
 	const [conversations, setConversations] = React.useState<Conversation[]>(null);
-	const [currentConversation, setCurrentConversation] = React.useState(null);
+	const [currentThread, setCurrentThread] = React.useState(null);
 	const [answerStream, setAnswerStream] = React.useState<Message>(null);
 	const [systemMessage, setSystemMessage] = React.useState<SystemMessage>(null);
 	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
@@ -58,9 +58,9 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 			if (question.length > 3) {
 				setSystemMessage(null);
 				const message = new QuestionMessage(question);
-				if (!currentConversation) {
+				if (!currentThread) {
 					const conversation = await conversationApi.createConversation(message.payload);
-					setCurrentConversation(conversation);
+					setCurrentThread(conversation);
 					setConversations((prev) => [...prev, conversation]);
 				} else {
 					addToConversation(message);
@@ -73,20 +73,20 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 				setSystemMessage(message);
 			}
 		},
-		[currentConversation, conversationApi],
+		[currentThread, conversationApi],
 	);
 
 	const addToConversation = React.useCallback(
 		async (message: Message) => {
-			await conversationApi.addMessage(currentConversation.id, message.payload);
-			setCurrentConversation((prevConversation: Conversation) => {
+			await conversationApi.addMessage(currentThread.id, message.payload);
+			setCurrentThread((prevConversation: Conversation) => {
 				const conversation = new Conversation(prevConversation.id, prevConversation.title);
 				Object.assign(conversation, prevConversation);
 				conversation.messages.add(message);
 				return conversation;
 			});
 		},
-		[currentConversation, conversationApi],
+		[currentThread, conversationApi],
 	);
 
 	const deleteConversation = React.useCallback(
@@ -100,7 +100,7 @@ export const ConversationProvider: React.FC<Props> = ({ children }) => {
 	const contextValue = {
 		conversations,
 		answerStream,
-		currentConversation,
+		currentThread,
 		systemMessage,
 		sendMessage,
 		deleteConversation,

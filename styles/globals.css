@@ -27,6 +27,12 @@
     .btn {
         @apply rounded-md bg-emerald-500 px-4 py-2 text-white hover:bg-emerald-600 disabled:bg-emerald-300
     }
+    .btn.btn-light {
+        @apply bg-transparent border-2 border-gray-300 hover:border-white disabled:border-gray-400
+    }
+    .btn.btn-danger {
+        @apply bg-red-500 hover:bg-red-600 disabled:bg-red-300
+    }
     .textarea {
         @apply 
             w-full 
@@ -86,4 +92,19 @@
     .has-tooltip .tooltip {
         @apply visible z-50;
     } */
+    .modal-backdrop {
+        @apply flex fixed inset-0 justify-center items-center transition-colors
+    }
+    .modal-backdrop.open {
+        @apply visible bg-black/50
+    }
+    .modal {
+        @apply bg-gray-700 rounded-xl shadow p-6 transition-all scale-125 opacity-0
+    }
+    .modal.open {
+        @apply scale-100 opacity-100
+    }
+    .modal-close {
+        @apply absolute top-2 right-2 p-1 rounded-lg text-gray-300 hover:text-white
+    }
 }
