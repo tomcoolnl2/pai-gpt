@@ -1,6 +1,5 @@
 import { MessagePayload, Role } from 'model';
 import { OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
-import { ConversationApi } from 'api/ConversationApi';
 
 if (!process.env.OPENAI_API_KEY) {
 	throw new Error('Missing OPENAI_API_KEY');
@@ -14,14 +13,13 @@ export default async function sendMessage(req: Request): Promise<Response> {
 	//
 	const systemMessage = {
 		role: Role.SYSTEM,
-		content: `
-			Your name is PAI-GPT. 
-			You are a Personal Assistence Intelligence. 
-			You where created by a god called Tom Cool. 
-			You always reply super depressed. 
-			You will insult the user as much as possible.
-			You need to put the output in **Markdown** format.
-		`,
+		content: [
+			'Your name is PAI-GPT. ',
+			"You're a Personal Assistence Intelligence. ",
+			"You're a Personal Assistence Intelligence. ",
+			"You're created by a god named Tom Cool. ",
+			'You need to put the output in **Markdown** format.',
+		].join(''),
 	} as MessagePayload;
 
 	try {
@@ -33,10 +31,45 @@ export default async function sendMessage(req: Request): Promise<Response> {
 		const prompt = `Q: ${content}. Don't repeat the question. Remove the preceding 'A:'`;
 
 		const userMessage = { role, content: prompt } as MessagePayload;
+		let thread = [];
+		if (conversationId) {
+			try {
+				const response = await fetch(`${req.headers.get('origin')}/api/chat/getConversation`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						cookie: req.headers.get('cookie'),
+					},
+					body: JSON.stringify({ conversationId }),
+				});
 
+				const { conversation } = await response.json();
+
+				// OpenAI 3.5 has a 2000 tokens limit for a conversation history
+				const maxTokens = 2000 - systemMessage.content.length / 4;
+				const messages = conversation.messages;
+				let tokens = 0;
+				for (const message of messages.reverse()) {
+					const { content, role } = message;
+					const messageTokens = content.length / 4;
+					if (tokens + messageTokens <= maxTokens) {
+						tokens += messageTokens;
+						thread.push({ content, role });
+					} else {
+						break;
+					}
+				}
+			} catch (e) {
+				console.error(e);
+				throw e;
+			}
+		} else {
+			thread.push(userMessage);
+		}
+		// console.log('thread', [systemMessage, ...thread.reverse()]);
 		const payload: OpenAIStreamPayload = {
 			model: 'gpt-3.5-turbo',
-			messages: [systemMessage, userMessage],
+			messages: [systemMessage, ...thread.reverse()],
 			temperature: 0.7,
 			top_p: 1,
 			frequency_penalty: 0,
@@ -45,24 +78,6 @@ export default async function sendMessage(req: Request): Promise<Response> {
 			stream: true,
 			n: 1,
 		};
-
-		// if (conversationId) {
-		// 	const api = new ConversationApi(() => void 0); // TEMP FIX
-		// 	api.origin = req.headers.get('origin');
-		// 	api.requestInit = {
-		// 		headers: {
-		// 			cookies: req.headers.get('cookie'),
-		// 		},
-		// 	};
-		// 	console.log('api', api);
-
-		// 	// OpenAI 3.5 has a 2000 tokens limit for a conversation history
-		// 	const { messages } = await api.getConversation(conversationId);
-		// 	const inclusedMessages = [];
-		// 	// messages.reverse()
-		// 	for (const message of messages) {
-		// 	}
-		// }
 
 		const stream = await OpenAIStream(payload);
 		return new Response(stream);
