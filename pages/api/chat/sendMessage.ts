@@ -1,5 +1,6 @@
 import { MessagePayload, Role } from 'model';
 import { OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
+import { ConversationApi } from 'api/ConversationApi';
 
 if (!process.env.OPENAI_API_KEY) {
 	throw new Error('Missing OPENAI_API_KEY');
@@ -25,6 +26,7 @@ export default async function sendMessage(req: Request): Promise<Response> {
 
 	try {
 		const {
+			conversationId,
 			payload: { role, content },
 		} = await req.json();
 
@@ -43,6 +45,24 @@ export default async function sendMessage(req: Request): Promise<Response> {
 			stream: true,
 			n: 1,
 		};
+
+		// if (conversationId) {
+		// 	const api = new ConversationApi(() => void 0); // TEMP FIX
+		// 	api.origin = req.headers.get('origin');
+		// 	api.requestInit = {
+		// 		headers: {
+		// 			cookies: req.headers.get('cookie'),
+		// 		},
+		// 	};
+		// 	console.log('api', api);
+
+		// 	// OpenAI 3.5 has a 2000 tokens limit for a conversation history
+		// 	const { messages } = await api.getConversation(conversationId);
+		// 	const inclusedMessages = [];
+		// 	// messages.reverse()
+		// 	for (const message of messages) {
+		// 	}
+		// }
 
 		const stream = await OpenAIStream(payload);
 		return new Response(stream);
