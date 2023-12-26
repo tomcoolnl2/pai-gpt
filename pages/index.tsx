@@ -2,15 +2,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { getSession } from '@auth0/nextjs-auth0';
-import { AnimatedWaves } from 'components';
+import { AnimatedWaves, Spinner } from 'components';
 
 export const Home: React.FC = () => {
 	//
 	const { isLoading, error, user } = useUser();
-
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
 
 	if (error) {
 		return <div>{error.message}</div>;
@@ -32,12 +28,8 @@ export const Home: React.FC = () => {
 					</figcaption>
 				</figure>
 				<hr className="mx-auto my-4 h-1 w-48 rounded border-0 bg-gray-100 dark:bg-gray-700 md:my-10" />
-				{!!user && (
-					<Link href="/api/auth/logout" className="text-white">
-						Logout
-					</Link>
-				)}
-				{!user && (
+				{isLoading && <Spinner />}
+				{!user && !isLoading && (
 					<Link href="/api/auth/login" className="btn">
 						Login
 					</Link>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import {
 	AnswerMessage,
 	Conversation,
@@ -45,35 +46,42 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 	const [currentThread, setCurrentThread] = React.useState<Conversation>(null);
 	const [answerStream, setAnswerStream] = React.useState<Message>(null);
 	const [systemMessage, setSystemMessage] = React.useState<SystemMessage>(null);
+
 	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
+
+	const { user } = useUser();
 	const router = useRouter();
 
 	React.useEffect(() => {
-		(async () => {
-			const list = await conversationApi.getConversationList();
-			setConversations(list);
-		})();
-	}, []);
+		user &&
+			(async () => {
+				const list = await conversationApi.getConversationList();
+				setConversations(list);
+			})();
+	}, [user]);
 
 	React.useEffect(() => {
-		(async () => {
-			const { conversationId: [id = null] = [] } = router.query;
-			if (id == null) {
-				setCurrentThread(null);
-			}
-			if (id && currentThread?.id !== id) {
-				const conversation = await conversationApi.getConversation(id);
-				setCurrentThread(conversation);
-			}
-		})();
-	}, [router.query, currentThread]);
+		user &&
+			(async () => {
+				const { conversationId: [id = null] = [] } = router.query;
+				if (id == null) {
+					setCurrentThread(null);
+				}
+				if (id && currentThread?.id !== id) {
+					const conversation = await conversationApi.getConversation(id);
+					setCurrentThread(conversation);
+				}
+			})();
+	}, [user, router.query, currentThread]);
 
 	React.useEffect(() => {
-		if (answerStream?.done) {
-			addToConversation(answerStream);
-			setAnswerStream(null);
+		if (!user) {
+			return;
 		}
-	}, [answerStream]);
+		if (answerStream && answerStream instanceof AnswerMessage && answerStream.done) {
+			addToConversation(answerStream);
+		}
+	}, [user, answerStream?.done]);
 
 	const createConversation = React.useCallback(
 		async (payload: MessagePayload) => {
@@ -108,13 +116,18 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 
 	const addToConversation = React.useCallback(
 		async (message: Message) => {
-			await conversationApi.addMessage(currentThread.id, message.payload);
-			setCurrentThread((prevConversation: Conversation) => {
-				const conversation = new Conversation(prevConversation.id, prevConversation.title);
-				Object.assign(conversation, prevConversation);
-				conversation.messages.add(message);
-				return conversation;
-			});
+			const added = await conversationApi.addMessage(currentThread.id, message.payload);
+			if (added) {
+				setCurrentThread((prevConversation: Conversation) => {
+					const conversation = new Conversation(prevConversation.id, prevConversation.title);
+					Object.assign(conversation, prevConversation);
+					conversation.messages.add(message);
+					return conversation;
+				});
+				if (message instanceof AnswerMessage) {
+					setAnswerStream(null);
+				}
+			}
 		},
 		[currentThread, conversationApi],
 	);
@@ -128,14 +141,18 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 		[conversations, conversationApi],
 	);
 
-	const contextValue = {
-		conversations,
-		answerStream,
-		currentThread,
-		systemMessage,
-		sendMessage,
-		deleteConversation,
-	};
+	const contextValue = React.useMemo(() => {
+		return !user
+			? initialConversationContext
+			: {
+					conversations,
+					answerStream,
+					currentThread,
+					systemMessage,
+					sendMessage,
+					deleteConversation,
+				};
+	}, [user, conversations, answerStream, currentThread, systemMessage, sendMessage, deleteConversation]);
 
 	return <ConversationContext.Provider value={contextValue}>{children}</ConversationContext.Provider>;
 });
