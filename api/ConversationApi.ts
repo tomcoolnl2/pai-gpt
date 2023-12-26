@@ -15,6 +15,10 @@ import { ConversationSet } from 'model/ConversationSet';
  */
 export class ConversationApi {
 	/**
+	 *
+	 */
+	public cancelReadableStream = false;
+	/**
 	 * Creates a new ConversationApi instance.
 	 * @param {React.Dispatch<React.SetStateAction<Message | null>>} answerStreamCallback - Callback function to handle message updates.
 	 */
@@ -56,7 +60,6 @@ export class ConversationApi {
 	 */
 	private handleError(message: string): void {
 		const systemMessage = new SystemErrorMessage(message);
-		systemMessage.done = false;
 		this.answerStreamCallback(systemMessage);
 	}
 
@@ -86,16 +89,19 @@ export class ConversationApi {
 	 */
 	private async generateStream(data: ReadableStream<Uint8Array>): Promise<void> {
 		//
-		const reader = data.getReader();
-		const decoder = new TextDecoder();
+		const reader: ReadableStreamDefaultReader<Uint8Array> = data.getReader();
+		const decoder: TextDecoder = new TextDecoder();
 		let doneReading = false;
 
 		while (!doneReading) {
-			//
 			const { value, done } = await reader.read();
 			let chunk = '';
 
 			doneReading = done;
+
+			if (this.cancelReadableStream) {
+				reader.cancel();
+			}
 
 			if (value) {
 				chunk = decoder.decode(value);
@@ -105,12 +111,15 @@ export class ConversationApi {
 				this.answerStreamCallback((answer) => {
 					return this.formatAnswer(answer, chunk, done);
 				});
+
+				this.cancelReadableStream = false;
 			}
 		}
 	}
 
 	/**
 	 * Sends a message.
+	 * @param {string} conversationId - The id if the conversation the message belongs to.
 	 * @param {string} payload - The id if the conversation the message belongs to.
 	 * @param {MessagePayload} payload - The message payload to send.
 	 * @returns {Promise<void>} - A promise that resolves when the message is sent.
@@ -161,6 +170,7 @@ export class ConversationApi {
 	 */
 	public async getConversation(conversationId: string): Promise<Conversation> {
 		try {
+			// this.controller.abort();
 			const response = await fetch(`/api/chat/getConversation`, {
 				...this.requestInit,
 				body: JSON.stringify({ conversationId }),
@@ -199,7 +209,9 @@ export class ConversationApi {
 	 */
 	public async getConversationList(): Promise<Conversation[]> {
 		try {
-			const response = await fetch(`/api/chat/getConversationList`, this.requestInit);
+			const response = await fetch(`/api/chat/getConversationList`, {
+				...this.requestInit,
+			});
 			if (this.responseIsValid(response)) {
 				const data = await response.json();
 				return data.conversations.map(({ _id, title }) => new Conversation(_id, title));

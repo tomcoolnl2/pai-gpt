@@ -2,10 +2,17 @@ import React from 'react';
 import { AnswerMessage, SystemErrorMessage } from 'model';
 import { useConversationContext } from 'context/conversation';
 
-export const ChatMessageForm: React.FC = () => {
+interface Props {
+	conversationId: string;
+}
+
+export const ChatMessageForm: React.FC<Props> = React.memo(({ conversationId }) => {
 	//
+	const [originalConversationId, setOriginalConversationId] = React.useState<string>(conversationId);
 	const [question, setQuestion] = React.useState<string>('');
 	const { answerStream, sendMessage } = useConversationContext();
+
+	const routeHasChanged = conversationId !== originalConversationId;
 
 	const disabled = React.useMemo(() => {
 		if (answerStream instanceof SystemErrorMessage) {
@@ -19,11 +26,13 @@ export const ChatMessageForm: React.FC = () => {
 
 	const handleSubmit = React.useCallback(
 		async (event: React.FormEvent<HTMLFormElement>) => {
+			console.log('handleSubmit', conversationId, originalConversationId);
 			event.preventDefault();
-			sendMessage(question);
+			sendMessage(originalConversationId, question);
+			setOriginalConversationId(conversationId);
 			setQuestion('');
 		},
-		[question, sendMessage],
+		[question, conversationId, sendMessage],
 	);
 
 	const handleKeyPress = React.useCallback(
@@ -53,4 +62,4 @@ export const ChatMessageForm: React.FC = () => {
 			</form>
 		</footer>
 	);
-};
+});
