@@ -10,7 +10,7 @@ import {
 	SystemMessage,
 	SystemWarningMessage,
 } from 'model';
-import { ConversationApi } from './ConversationApi';
+import { ConversationApi } from 'api';
 
 interface ConversationState {
 	conversations: Conversation[] | null;
@@ -65,7 +65,10 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 			(async () => {
 				const { conversationId: [id = null] = [] } = router.query;
 				if (id == null) {
+					// new chat
 					setCurrentThread(null);
+					setAnswerStream(null);
+					setSystemMessage(null);
 				}
 				if (id && currentThread?.id !== id) {
 					const conversation = await conversationApi.getConversation(id);

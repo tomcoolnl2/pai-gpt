@@ -7,7 +7,6 @@ import {
 	QuestionMessage,
 	ConversationPayload,
 	roleToConstructor,
-	SystemMessage,
 } from 'model';
 import { ConversationSet } from 'model/ConversationSet';
 
@@ -19,57 +18,22 @@ export class ConversationApi {
 	 * Creates a new ConversationApi instance.
 	 * @param {React.Dispatch<React.SetStateAction<Message | null>>} answerStreamCallback - Callback function to handle message updates.
 	 */
-	constructor(public messageCallback: React.Dispatch<React.SetStateAction<Message | null>>) {
+	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {
 		//
 	}
 
 	/**
-	 * Represents the origin value.
+	 * Provides the default request configuration for API calls.
+	 * @type {Object}
 	 * @private
 	 */
-	private _origin = '';
-
-	/**
-	 * Gets the origin value.
-	 * @returns {string} - The origin value.
-	 */
-	public get origin(): string {
-		return this._origin;
-	}
-
-	/**
-	 * Sets the origin value.
-	 * @param {string} origin - The new origin value to set.
-	 */
-	public set origin(origin: string) {
-		this._origin = origin;
-	}
-
-	/**
-	 * Represents the default request initialization object.
-	 * @private
-	 */
-	private _requestInit = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	};
-
-	/**
-	 * Gets the request initialization object.
-	 * @returns {RequestInit} - The request initialization object.
-	 */
-	public get requestInit(): RequestInit {
-		return this._requestInit;
-	}
-
-	/**
-	 * Sets the request initialization options.
-	 * @param {RequestInit} options - The options to be set in the request initialization.
-	 */
-	public set requestInit(options: RequestInit) {
-		Object.assign(this._requestInit, options);
+	private get defaultRequest() {
+		return {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		};
 	}
 
 	/**
@@ -79,13 +43,9 @@ export class ConversationApi {
 	 * @private
 	 */
 	private responseIsValid(response: Response): boolean {
-		console.log('responseIsValid', response);
-		if (!response.ok) {
-			console.log('responseIsValid !response.ok', !response.ok);
-			this.handleError(response.statusText);
-			return false;
-		} else if (!response.body) {
-			this.handleError('Invalid response... Please hit any user to proceed!');
+		const message = 'Something went wrong... Please hit any user to proceed!';
+		if (!response.ok || !response.body) {
+			this.handleError(message);
 			return false;
 		}
 		return true;
@@ -98,7 +58,8 @@ export class ConversationApi {
 	 */
 	private handleError(message: string): void {
 		const systemMessage = new SystemErrorMessage(message);
-		this.messageCallback(systemMessage);
+		systemMessage.done = false;
+		this.answerStreamCallback(systemMessage);
 	}
 
 	/**
@@ -143,7 +104,7 @@ export class ConversationApi {
 			}
 
 			if (value || done) {
-				this.messageCallback((answer) => {
+				this.answerStreamCallback((answer) => {
 					return this.formatAnswer(answer, chunk, done);
 				});
 			}
@@ -155,11 +116,11 @@ export class ConversationApi {
 	 * @param {MessagePayload} payload - The message payload to send.
 	 * @returns {Promise<void>} - A promise that resolves when the message is sent.
 	 */
-	public async sendMessage(conversationId: string, payload: MessagePayload): Promise<void> {
+	public async sendMessage(payload: MessagePayload): Promise<void> {
 		try {
-			const response = await fetch(`${this.origin}/api/chat/sendMessage`, {
-				...this.requestInit,
-				body: JSON.stringify({ conversationId, payload }),
+			const response = await fetch('/api/chat/sendMessage', {
+				...this.defaultRequest,
+				body: JSON.stringify({ payload }),
 			});
 
 			if (this.responseIsValid(response)) {
@@ -178,8 +139,8 @@ export class ConversationApi {
 	 */
 	public async createConversation(payload: MessagePayload): Promise<Conversation> {
 		try {
-			const response = await fetch(`${this.origin}/api/chat/createConversation`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/createConversation', {
+				...this.defaultRequest,
 				body: JSON.stringify({ payload }),
 			});
 			if (this.responseIsValid(response)) {
@@ -201,12 +162,11 @@ export class ConversationApi {
 	 */
 	public async getConversation(conversationId: string): Promise<Conversation> {
 		try {
-			const response = await fetch(`${this.origin}/api/chat/getConversation`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/getConversation', {
+				...this.defaultRequest,
 				body: JSON.stringify({ conversationId }),
 			});
 			if (this.responseIsValid(response)) {
-				console.log('response', response);
 				const { conversation } = await response.json();
 				return this.parseConversation(conversation);
 			}
@@ -223,8 +183,8 @@ export class ConversationApi {
 	 */
 	public async deleteConversation(conversationId: string): Promise<boolean> {
 		try {
-			const response = await fetch(`${this.origin}/api/chat/deleteConversation`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/deleteConversation', {
+				...this.defaultRequest,
 				body: JSON.stringify({ conversationId }),
 			});
 			return this.responseIsValid(response);
@@ -240,7 +200,7 @@ export class ConversationApi {
 	 */
 	public async getConversationList(): Promise<Conversation[]> {
 		try {
-			const response = await fetch(`${this.origin}/api/chat/getConversationList`, this.requestInit);
+			const response = await fetch('/api/chat/getConversationList', this.defaultRequest);
 			if (this.responseIsValid(response)) {
 				const data = await response.json();
 				return data.conversations.map(({ _id, title }) => new Conversation(_id, title));
@@ -259,11 +219,12 @@ export class ConversationApi {
 	 */
 	public async addMessage(conversationId: string, payload: MessagePayload): Promise<boolean> {
 		try {
-			const response = await fetch(`${this.origin}/api/chat/addMessage`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/addMessage', {
+				...this.defaultRequest,
 				body: JSON.stringify({ conversationId, payload }),
 			});
 			return this.responseIsValid(response);
+			//
 		} catch (error: unknown) {
 			const messageError = error instanceof Error ? error.message : 'Error retrieving a list of conversations...';
 			this.handleError(messageError);

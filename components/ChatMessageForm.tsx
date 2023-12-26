@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnswerMessage } from 'model';
+import { AnswerMessage, SystemErrorMessage } from 'model';
 import { useConversationContext } from 'context/conversation';
 
 export const ChatMessageForm: React.FC = () => {
@@ -8,6 +8,9 @@ export const ChatMessageForm: React.FC = () => {
 	const { answerStream, sendMessage } = useConversationContext();
 
 	const disabled = React.useMemo(() => {
+		if (answerStream instanceof SystemErrorMessage) {
+			return true;
+		}
 		if (answerStream instanceof AnswerMessage) {
 			return !answerStream.done;
 		}
