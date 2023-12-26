@@ -10,6 +10,15 @@ type Props = Conversation & {
 };
 
 export const SidebarItem: React.FC<Props> = ({ id, title, selected, openDeleteModal }) => {
+	//
+	const handleOpenDeleteModal = React.useCallback(
+		(event: React.MouseEvent<SVGSVGElement>) => {
+			event.preventDefault();
+			openDeleteModal(id);
+		},
+		[id, openDeleteModal],
+	);
+
 	return (
 		<li>
 			<Link href={`/chat/${id}`} className={`sidebar-item${selected ? ' sidebar-item-selected' : ''}`}>
@@ -17,7 +26,7 @@ export const SidebarItem: React.FC<Props> = ({ id, title, selected, openDeleteMo
 				<span className="truncate w-full" title={title}>
 					{title}
 				</span>
-				<FontAwesomeIcon icon={faTrash} className="action-delete" onClick={() => openDeleteModal(id)} />
+				<FontAwesomeIcon icon={faTrash} className="action-delete" onClick={handleOpenDeleteModal} />
 			</Link>
 		</li>
 	);
