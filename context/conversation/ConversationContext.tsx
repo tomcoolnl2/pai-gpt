@@ -1,7 +1,15 @@
 import React from 'react';
-import { NextRouter, useRouter } from 'next/router';
-import { UserContext, useUser } from '@auth0/nextjs-auth0/client';
-import { AnswerMessage, Conversation, Message, QuestionMessage, SystemMessage, SystemWarningMessage } from 'model';
+import { useRouter } from 'next/router';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import {
+	AnswerMessage,
+	Conversation,
+	Message,
+	MessagePayload,
+	QuestionMessage,
+	SystemMessage,
+	SystemWarningMessage,
+} from 'model';
 import { ConversationApi } from 'api';
 
 interface ConversationState {
@@ -9,7 +17,7 @@ interface ConversationState {
 	currentThread: Conversation | null;
 	answerStream: Message | null;
 	systemMessage: SystemMessage | null;
-	sendMessage: (conversationId: string, question: string) => void;
+	sendMessage: (question: string) => void;
 	deleteConversation: (conversationId: string) => Promise<void>;
 }
 
@@ -41,69 +49,57 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 
 	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
 
-	const { user }: UserContext = useUser();
-	const router: NextRouter = useRouter();
+	const { user } = useUser();
+	const router = useRouter();
 
 	React.useEffect(() => {
-		if (user) {
+		user &&
 			(async () => {
 				const list = await conversationApi.getConversationList();
 				setConversations(list);
 			})();
-		}
 	}, [user]);
 
 	React.useEffect(() => {
-		if (user) {
+		user &&
 			(async () => {
 				const { conversationId: [id = null] = [] } = router.query;
-
-				// a new chat started
 				if (id == null) {
+					// new chat
 					setCurrentThread(null);
 					setAnswerStream(null);
 					setSystemMessage(null);
 				}
-
-				// the route has changed
 				if (id && currentThread?.id !== id) {
-					// if a stream is producing a answer cancel it
-					if (answerStream instanceof Message && !answerStream?.done) {
-						conversationApi.cancelReadableStream = true;
-					}
 					const conversation = await conversationApi.getConversation(id);
 					setCurrentThread(conversation);
 				}
 			})();
-		}
 	}, [user, router.query, currentThread]);
 
 	React.useEffect(() => {
 		if (!user) {
 			return;
 		}
-		if (answerStream instanceof AnswerMessage && answerStream.done) {
-			console.log('answerStream done', answerStream);
+		if (answerStream && answerStream instanceof AnswerMessage && answerStream.done) {
 			addToConversation(answerStream);
 		}
 	}, [user, answerStream?.done]);
 
 	const sendMessage = React.useCallback(
-		async (conversationId: string, question: string) => {
+		async (question: string) => {
 			if (question.length > 3) {
-				//
 				setSystemMessage(null);
 				const message = new QuestionMessage(question);
-
 				if (!currentThread) {
 					const conversation = await conversationApi.createConversation(message.payload);
+					await conversationApi.sendMessage(conversation.id, message.payload);
 					setCurrentThread(conversation);
 					setConversations((prev) => [...prev, conversation]);
 					router.push(`/chat/${conversation.id}`);
-					//
 				} else {
 					await addToConversation(message);
-					await conversationApi.sendMessage(conversationId, message.payload);
+					await conversationApi.sendMessage(currentThread.id, message.payload);
 				}
 				setAnswerStream(new AnswerMessage());
 			} else {
