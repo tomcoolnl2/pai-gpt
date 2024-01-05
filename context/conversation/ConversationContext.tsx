@@ -102,15 +102,12 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 				setSystemMessage(null);
 				const message = new QuestionMessage(question);
 				if (!currentThread) {
-					const conversation = await conversationApi.createConversation(message.payload);
-					await conversationApi.sendMessage(conversation.id, message.payload);
-					setCurrentThread(conversation);
-					setConversations((prev) => [...prev, conversation]);
+					await createConversation(message.payload);
 				} else {
-					await addToConversation(message);
-					await conversationApi.sendMessage(currentThread.id, message.payload);
+					addToConversation(message);
 				}
 				setAnswerStream(new AnswerMessage());
+				await conversationApi.sendMessage(message.payload);
 			} else {
 				const warning = 'Tip: For better responses, aim for questions longer than 3 characters.';
 				const message = new SystemWarningMessage(warning);
@@ -135,7 +132,7 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 				}
 			}
 		},
-		[currentThread],
+		[currentThread, conversationApi],
 	);
 
 	const deleteConversation = React.useCallback(

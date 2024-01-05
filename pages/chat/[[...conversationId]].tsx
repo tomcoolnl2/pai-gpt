@@ -21,7 +21,7 @@ export default function ChatPage({ conversationId }) {
 						{answerStream && <ChatMessage {...answerStream} />}
 						{systemMessage && <ChatMessage {...systemMessage} />}
 					</ul>
-					<ChatMessageForm />
+					<ChatMessageForm conversationId={conversationId} />
 				</div>
 			</div>
 		</>

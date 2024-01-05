@@ -113,15 +113,14 @@ export class ConversationApi {
 
 	/**
 	 * Sends a message.
-	 * @param {string} payload - The id if the conversation the message belongs to.
 	 * @param {MessagePayload} payload - The message payload to send.
 	 * @returns {Promise<void>} - A promise that resolves when the message is sent.
 	 */
-	public async sendMessage(conversationId: string, payload: MessagePayload): Promise<void> {
+	public async sendMessage(payload: MessagePayload): Promise<void> {
 		try {
 			const response = await fetch('/api/chat/sendMessage', {
 				...this.defaultRequest,
-				body: JSON.stringify({ conversationId, payload }),
+				body: JSON.stringify({ payload }),
 			});
 
 			if (this.responseIsValid(response)) {

@@ -1,11 +1,6 @@
 import { ConversationSet } from 'model/ConversationSet';
 import { v4 as uuid } from 'uuid';
 
-export interface DatedEntity {
-	creationDate: Date;
-	editedDate: Date;
-}
-
 export enum Role {
 	SYSTEM = 'system',
 	USER = 'user',
@@ -17,8 +12,6 @@ export class Conversation {
 		public id: string,
 		public title: string,
 		public messages: ConversationSet<Message> = null,
-		public creationDate = new Date(),
-		public editedDate = new Date(),
 	) {}
 }
 
@@ -28,35 +21,27 @@ export interface ConversationPayload {
 	messages: MessagePayload[] | null;
 }
 
-export abstract class Message implements DatedEntity {
+export abstract class Message {
 	//
-	abstract readonly role: Role;
+	public id: string;
 	public content: string;
-
 	public done: boolean = true;
+	abstract readonly role: Role;
 
-	constructor(
-		public id: string,
-		public creationDate = new Date(),
-		public editedDate = new Date(),
-	) {}
+	constructor() {
+		this.id = uuid();
+	}
 
 	public get payload(): MessagePayload {
-		return new MessagePayload(this);
+		return new MessagePayload(this.role, this.content);
 	}
 }
 
 export class MessagePayload {
-	public role: string;
-	public content: string;
-	public creationDate: string;
-	public editedDate: string;
-	constructor(message: Message) {
-		this.role = message.role as string;
-		this.content = message.content;
-		this.creationDate = message.creationDate.toISOString();
-		this.editedDate = message.editedDate.toISOString();
-	}
+	constructor(
+		public role: Role,
+		public content: string,
+	) {}
 }
 
 export class QuestionMessage extends Message {
@@ -64,7 +49,7 @@ export class QuestionMessage extends Message {
 	readonly role = Role.USER;
 
 	constructor(public content: string) {
-		super(uuid());
+		super();
 	}
 }
 
@@ -76,7 +61,7 @@ export class AnswerMessage extends Message {
 		public content: string = '',
 		public done: boolean = false,
 	) {
-		super(uuid());
+		super();
 	}
 }
 
@@ -92,7 +77,7 @@ export abstract class SystemMessage extends Message {
 	public readonly role = Role.SYSTEM;
 
 	constructor(public content: string) {
-		super(uuid());
+		super();
 	}
 }
 
