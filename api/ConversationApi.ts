@@ -27,12 +27,14 @@ export class ConversationApi {
 	 * @type {Object}
 	 * @private
 	 */
-	private requestInit: RequestInit = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	};
+	private get defaultRequest() {
+		return {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		};
+	}
 
 	/**
 	 * Checks if the response is valid.
@@ -117,8 +119,8 @@ export class ConversationApi {
 	 */
 	public async sendMessage(conversationId: string, payload: MessagePayload): Promise<void> {
 		try {
-			const response = await fetch(`/api/chat/sendMessage`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/sendMessage', {
+				...this.defaultRequest,
 				body: JSON.stringify({ conversationId, payload }),
 			});
 
@@ -138,8 +140,8 @@ export class ConversationApi {
 	 */
 	public async createConversation(payload: MessagePayload): Promise<Conversation> {
 		try {
-			const response = await fetch(`/api/chat/createConversation`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/createConversation', {
+				...this.defaultRequest,
 				body: JSON.stringify({ payload }),
 			});
 			if (this.responseIsValid(response)) {
@@ -161,8 +163,8 @@ export class ConversationApi {
 	 */
 	public async getConversation(conversationId: string): Promise<Conversation> {
 		try {
-			const response = await fetch(`/api/chat/getConversation`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/getConversation', {
+				...this.defaultRequest,
 				body: JSON.stringify({ conversationId }),
 			});
 			if (this.responseIsValid(response)) {
@@ -182,8 +184,8 @@ export class ConversationApi {
 	 */
 	public async deleteConversation(conversationId: string): Promise<boolean> {
 		try {
-			const response = await fetch(`/api/chat/deleteConversation`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/deleteConversation', {
+				...this.defaultRequest,
 				body: JSON.stringify({ conversationId }),
 			});
 			return this.responseIsValid(response);
@@ -199,7 +201,7 @@ export class ConversationApi {
 	 */
 	public async getConversationList(): Promise<Conversation[]> {
 		try {
-			const response = await fetch(`/api/chat/getConversationList`, this.requestInit);
+			const response = await fetch('/api/chat/getConversationList', this.defaultRequest);
 			if (this.responseIsValid(response)) {
 				const data = await response.json();
 				return data.conversations.map(({ _id, title }) => new Conversation(_id, title));
@@ -218,8 +220,8 @@ export class ConversationApi {
 	 */
 	public async addMessage(conversationId: string, payload: MessagePayload): Promise<boolean> {
 		try {
-			const response = await fetch(`/api/chat/addMessage`, {
-				...this.requestInit,
+			const response = await fetch('/api/chat/addMessage', {
+				...this.defaultRequest,
 				body: JSON.stringify({ conversationId, payload }),
 			});
 			return this.responseIsValid(response);

@@ -86,6 +86,16 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 		}
 	}, [user, answerStream?.done]);
 
+	const createConversation = React.useCallback(
+		async (payload: MessagePayload) => {
+			const conversation = await conversationApi.createConversation(payload);
+			setCurrentThread(conversation);
+			setConversations((prev) => [...prev, conversation]);
+			router.push(`/chat/${conversation.id}`);
+		},
+		[conversationApi, router],
+	);
+
 	const sendMessage = React.useCallback(
 		async (question: string) => {
 			if (question.length > 3) {
@@ -96,7 +106,6 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 					await conversationApi.sendMessage(conversation.id, message.payload);
 					setCurrentThread(conversation);
 					setConversations((prev) => [...prev, conversation]);
-					router.push(`/chat/${conversation.id}`);
 				} else {
 					await addToConversation(message);
 					await conversationApi.sendMessage(currentThread.id, message.payload);
