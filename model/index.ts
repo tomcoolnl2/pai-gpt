@@ -24,6 +24,7 @@ export interface ConversationPayload {
 export abstract class Message {
 	//
 	public id: string;
+	public conversationId: string;
 	public content: string;
 	public done: boolean = true;
 	abstract readonly role: Role;

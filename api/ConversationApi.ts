@@ -62,17 +62,19 @@ export class ConversationApi {
 
 	/**
 	 * Formats an answer message.
+	 * @param {string} conversationId - Id of the conversation.
 	 * @param {Message} prevAnswer - The previous answer message.
 	 * @param {string} chunk - The chunk of data to format.
 	 * @param {boolean} done - Indicates if reading is complete.
 	 * @returns {AnswerMessage} - The formatted answer message.
 	 * @private
 	 */
-	private formatAnswer(prevAnswer: Message, chunk: string, done: boolean): AnswerMessage {
+	private formatAnswer(conversationId: string, prevAnswer: Message, chunk: string, done: boolean): AnswerMessage {
 		const answer = new AnswerMessage();
 		if (prevAnswer instanceof AnswerMessage) {
 			Object.assign(answer, prevAnswer);
 		}
+		answer.conversationId = conversationId;
 		answer.content += chunk;
 		answer.done = done;
 		return answer;
@@ -80,11 +82,12 @@ export class ConversationApi {
 
 	/**
 	 * Generates a message stream from the provided data.
+	 * @param {string} conversationId - Id of the conversation.
 	 * @param {ReadableStream<Uint8Array>} data - The data stream to generate from.
 	 * @returns {Promise<void>} - A promise that resolves when the stream generation is complete.
 	 * @private
 	 */
-	private async generateStream(data: ReadableStream<Uint8Array>): Promise<void> {
+	private async generateStream(conversationId: string, data: ReadableStream<Uint8Array>): Promise<void> {
 		//
 		const reader = data.getReader();
 		const decoder = new TextDecoder();
@@ -103,7 +106,7 @@ export class ConversationApi {
 
 			if (value || done) {
 				this.answerStreamCallback((answer) => {
-					return this.formatAnswer(answer, chunk, done);
+					return this.formatAnswer(conversationId, answer, chunk, done);
 				});
 			}
 		}
@@ -111,6 +114,7 @@ export class ConversationApi {
 
 	/**
 	 * Sends a message.
+	 * @param {string} conversationId - Id of the conversation.
 	 * @param {MessagePayload} payload - The message payload to send.
 	 * @returns {Promise<void>} - A promise that resolves when the message is sent.
 	 */
@@ -122,7 +126,7 @@ export class ConversationApi {
 			});
 
 			if (this.responseIsValid(response)) {
-				this.generateStream(response.body);
+				this.generateStream(conversationId, response.body);
 			}
 		} catch (error: unknown) {
 			const messageError = error instanceof Error ? error.message : 'Error sending message...';

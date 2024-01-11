@@ -105,13 +105,16 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 			} else {
 				setSystemMessage(null);
 				const message = new QuestionMessage(question);
+				message.conversationId = consversationId;
 				if (!currentThread) {
 					await createConversation(message.payload);
 				} else {
 					addToConversation(message);
 				}
-				setAnswerStream(new AnswerMessage());
 				await conversationApi.sendMessage(consversationId, message.payload);
+				const answer = new AnswerMessage();
+				answer.conversationId = consversationId;
+				setAnswerStream(answer);
 			}
 		},
 		[currentThread, conversationApi, router],
