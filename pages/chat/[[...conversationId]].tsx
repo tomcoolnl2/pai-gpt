@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import { Sidebar, ChatMessageForm, ChatMessage } from 'components';
 import { useConversationContext } from 'context/conversation';
+import { GetServerSideProps } from 'next';
 
 export default function ChatPage({ conversationId }) {
 	//
@@ -21,14 +22,14 @@ export default function ChatPage({ conversationId }) {
 						{answerStream && <ChatMessage {...answerStream} />}
 						{systemMessage && <ChatMessage {...systemMessage} />}
 					</ul>
-					<ChatMessageForm />
+					<ChatMessageForm conversationId={conversationId} />
 				</div>
 			</div>
 		</>
 	);
 }
 
-export const getServerSideProps = async (ctx) => {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const conversationId = ctx.params?.conversationId?.[0] || null;
 	return {
 		props: {

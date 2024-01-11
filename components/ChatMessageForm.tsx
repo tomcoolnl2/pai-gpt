@@ -2,7 +2,7 @@ import React from 'react';
 import { AnswerMessage, SystemErrorMessage } from 'model';
 import { useConversationContext } from 'context/conversation';
 
-export const ChatMessageForm: React.FC = () => {
+export const ChatMessageForm: React.FC<{ conversationId: null | string }> = ({ conversationId }) => {
 	//
 	const [question, setQuestion] = React.useState<string>('');
 	const { answerStream, sendMessage } = useConversationContext();
@@ -20,7 +20,7 @@ export const ChatMessageForm: React.FC = () => {
 	const handleSubmit = React.useCallback(
 		async (event: React.FormEvent<HTMLFormElement>) => {
 			event.preventDefault();
-			sendMessage(question);
+			sendMessage(conversationId, question);
 			setQuestion('');
 		},
 		[question, sendMessage],

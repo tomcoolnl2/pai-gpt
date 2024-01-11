@@ -17,7 +17,7 @@ interface ConversationState {
 	currentThread: Conversation | null;
 	answerStream: Message | null;
 	systemMessage: SystemMessage | null;
-	sendMessage: (question: string) => void;
+	sendMessage: (consversationId: string, question: string) => void;
 	deleteConversation: (conversationId: string) => Promise<void>;
 }
 
@@ -97,8 +97,12 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 	);
 
 	const sendMessage = React.useCallback(
-		async (question: string) => {
-			if (question.length > 3) {
+		async (consversationId: string, question: string) => {
+			if (question.length <= 3) {
+				const warning = 'Tip: For better responses, aim for questions longer than 3 characters.';
+				const message = new SystemWarningMessage(warning);
+				setSystemMessage(message);
+			} else {
 				setSystemMessage(null);
 				const message = new QuestionMessage(question);
 				if (!currentThread) {
@@ -107,11 +111,7 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 					addToConversation(message);
 				}
 				setAnswerStream(new AnswerMessage());
-				await conversationApi.sendMessage(message.payload);
-			} else {
-				const warning = 'Tip: For better responses, aim for questions longer than 3 characters.';
-				const message = new SystemWarningMessage(warning);
-				setSystemMessage(message);
+				await conversationApi.sendMessage(consversationId, message.payload);
 			}
 		},
 		[currentThread, conversationApi, router],

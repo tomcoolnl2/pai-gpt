@@ -1,9 +1,9 @@
 import { createParser, ParsedEvent, ReconnectInterval } from 'eventsource-parser';
-import { Prompt } from 'model';
+import { MessagePayload } from 'model';
 
 export interface OpenAIStreamPayload {
 	model: string;
-	messages: Prompt[];
+	messages: MessagePayload[];
 	temperature: number;
 	top_p: number;
 	frequency_penalty: number;
@@ -31,8 +31,8 @@ export async function OpenAIStream(payload: OpenAIStreamPayload) {
 
 	const stream = new ReadableStream({
 		async start(controller) {
-			// callback
-			function onParse(event: ParsedEvent | ReconnectInterval) {
+			//
+			const onParse = (event: ParsedEvent | ReconnectInterval) => {
 				if (event.type === 'event') {
 					const data = event.data;
 					// https://beta.openai.com/docs/api-reference/completions/create#completions/create-stream
@@ -51,11 +51,10 @@ export async function OpenAIStream(payload: OpenAIStreamPayload) {
 						controller.enqueue(queue);
 						counter += 1;
 					} catch (e) {
-						// maybe parse error
 						controller.error(e);
 					}
 				}
-			}
+			};
 
 			// stream response (SSE) from OpenAI may be fragmented into multiple chunks
 			// this ensures we properly read chunks and invoke an event for each SSE event stream
