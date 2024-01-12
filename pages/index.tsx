@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { getSession } from '@auth0/nextjs-auth0';
-import { AnimatedWaves, Spinner } from 'components';
+import { AnimatedWaves, Logo, Spinner } from 'components';
 
 export const Home: React.FC = () => {
 	//
@@ -21,13 +21,7 @@ export const Home: React.FC = () => {
 				<AnimatedWaves />
 			</div>
 			<div className="splash-page">
-				<figure className="flex max-w-lg flex-col items-center">
-					<img src="/logo.svg" width={100} height={100} />
-					<figcaption className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
-						PAI - GPT
-					</figcaption>
-				</figure>
-				<hr className="mx-auto my-4 h-1 w-48 rounded border-0 bg-gray-100 dark:bg-gray-700 md:my-10" />
+				<Logo />
 				{isLoading && <Spinner />}
 				{!user && !isLoading && (
 					<Link href="/api/auth/login" className="btn">
