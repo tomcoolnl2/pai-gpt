@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { Sidebar, ChatMessageForm, ChatMessage, Logo } from 'components';
 import { useConversationContext } from 'context/conversation';
 import { GetServerSideProps } from 'next';
+import { SystemMessage } from 'model';
 
 export default function ChatPage({ conversationId }) {
 	//
@@ -16,7 +17,7 @@ export default function ChatPage({ conversationId }) {
 			<div id="modal-root" className="grid h-screen grid-cols-[260px_1fr]">
 				<Sidebar conversationId={conversationId} />
 				<div className="flex flex-col bg-gray-700 overflow-hidden text-white">
-					{!currentThread && !systemMessage && (
+					{!currentThread && !systemMessage && !(answerStream instanceof SystemMessage) && (
 						<div className="flex flex-col items-center mt-[10%]">
 							<Logo />
 							<h1>Ask me a question!</h1>

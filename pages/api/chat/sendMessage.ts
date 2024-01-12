@@ -83,7 +83,16 @@ export default async function sendMessage(req: Request): Promise<Response> {
 		return new Response(stream);
 		//
 	} catch (e) {
-		console.error(e);
-		throw e;
+		return new Response(
+			JSON.stringify({
+				message: 'An error occurred in sendMessage',
+			}),
+			{
+				status: 500,
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			},
+		);
 	}
 }
