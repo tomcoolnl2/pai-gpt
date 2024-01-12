@@ -22,7 +22,7 @@ export const Home: React.FC = () => {
 			</div>
 			<div className="splash-page">
 				<figure className="flex max-w-lg flex-col items-center">
-					<img src="/logo.svg" width={100} />
+					<img src="/logo.svg" width={100} height={100} />
 					<figcaption className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
 						PAI - GPT
 					</figcaption>

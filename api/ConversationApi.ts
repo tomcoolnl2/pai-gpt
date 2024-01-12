@@ -16,11 +16,15 @@ import { ConversationSet } from 'model/ConversationSet';
 export class ConversationApi {
 	/**
 	 * Creates a new ConversationApi instance.
-	 * @param {React.Dispatch<React.SetStateAction<Message | null>>} answerStreamCallback - Callback function to handle message updates.
+	 * @param {React.Dispatch<React.SetStateAction<Message | null>>} streamCallback - Callback function to handle message updates.
 	 */
-	constructor(public answerStreamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {
-		//
-	}
+	constructor(public streamCallback: React.Dispatch<React.SetStateAction<Message | null>>) {}
+
+	/**
+	 * Public boolean to cancel a stream if needed.
+	 * @type {boolean}
+	 */
+	public cancelReadableStream: boolean = false;
 
 	/**
 	 * Provides the default request configuration for API calls.
@@ -57,7 +61,7 @@ export class ConversationApi {
 	private handleError(message: string): void {
 		const systemMessage = new SystemErrorMessage(message);
 		systemMessage.done = false;
-		this.answerStreamCallback(systemMessage);
+		this.streamCallback(systemMessage);
 	}
 
 	/**
@@ -100,12 +104,17 @@ export class ConversationApi {
 
 			doneReading = done;
 
+			if (this.cancelReadableStream) {
+				reader.cancel();
+				this.cancelReadableStream = false;
+			}
+
 			if (value) {
 				chunk = decoder.decode(value);
 			}
 
 			if (value || done) {
-				this.answerStreamCallback((answer) => {
+				this.streamCallback((answer) => {
 					return this.formatAnswer(conversationId, answer, chunk, done);
 				});
 			}

@@ -16,12 +16,14 @@ export default function ChatPage({ conversationId }) {
 			<div id="modal-root" className="grid h-screen grid-cols-[260px_1fr]">
 				<Sidebar conversationId={conversationId} />
 				<div className="flex flex-col bg-gray-700 overflow-hidden">
-					<ul className="flex-1 text-white p-10 overflow-scroll">
-						{currentThread &&
-							currentThread.messages.map((message) => <ChatMessage key={message.id} {...message} />)}
-						{answerStream && <ChatMessage {...answerStream} />}
-						{systemMessage && <ChatMessage {...systemMessage} />}
-					</ul>
+					<div className="flex-1 flex flex-col-reverse overflow-y-scroll no-scrollbar">
+						<ul className="text-white p-10 mb-auto">
+							{currentThread &&
+								currentThread.messages.map((message) => <ChatMessage key={message.id} {...message} />)}
+							{answerStream && <ChatMessage {...answerStream} />}
+							{systemMessage && <ChatMessage {...systemMessage} />}
+						</ul>
+					</div>
 					<ChatMessageForm conversationId={conversationId} />
 				</div>
 			</div>

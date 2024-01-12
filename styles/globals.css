@@ -8,6 +8,21 @@
     }
 }
 
+@layer utilities {
+    @variants responsive {
+        /* Hide scrollbar for Chrome, Safari, and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+  
+        /* Hide scrollbar for IE, Edge, and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+    }
+} 
+
 @layer components {
     .spinner {
         @apply text-gray-200 animate-spin dark:text-gray-600 fill-green-500 w-6 h-6

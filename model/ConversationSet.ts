@@ -11,7 +11,7 @@ export class ConversationSet<T> extends Set<T> {
 	 */
 	findByProperty<K extends keyof T>(prop: K, value: T[K]): T | undefined {
 		for (const item of this) {
-			if ((item as any)[prop] === value) {
+			if ((item as unknown)[prop] === value) {
 				return item;
 			}
 		}
@@ -27,7 +27,7 @@ export class ConversationSet<T> extends Set<T> {
 	findAllByProperty<K extends keyof T>(prop: K, value: T[K]): T[] {
 		const matchingItems: T[] = [];
 		for (const item of this) {
-			if ((item as any)[prop] === value) {
+			if ((item as unknown)[prop] === value) {
 				matchingItems.push(item);
 			}
 		}

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useRouter } from 'next/router';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { NextRouter, useRouter } from 'next/router';
+import { UserContext, useUser } from '@auth0/nextjs-auth0/client';
 import {
 	AnswerMessage,
 	Conversation,
@@ -49,8 +49,8 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 
 	const { current: conversationApi } = React.useRef(new ConversationApi(setAnswerStream));
 
-	const { user } = useUser();
-	const router = useRouter();
+	const { user }: UserContext = useUser();
+	const router: NextRouter = useRouter();
 
 	React.useEffect(() => {
 		user &&
@@ -64,17 +64,19 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 		user &&
 			(async () => {
 				const { conversationId: [id = null] = [] } = router.query;
-				if (id == null) {
-					// new chat
-					setCurrentThread(null);
-					setAnswerStream(null);
-					setSystemMessage(null);
+				if (!id) {
+					reset();
 				}
 				if (id && currentThread?.id !== id) {
 					const conversation = await conversationApi.getConversation(id);
 					setCurrentThread(conversation);
 				}
 			})();
+	}, [user, router.query, currentThread]);
+
+	React.useEffect(() => {
+		const { conversationId: [id = null] = [] } = router.query;
+		console.log('conversationId', id);
 	}, [user, router.query, currentThread]);
 
 	React.useEffect(() => {
@@ -86,15 +88,29 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 		}
 	}, [user, answerStream?.done]);
 
+	const reset = React.useCallback(() => {
+		setCurrentThread(null);
+		setAnswerStream(null);
+		setSystemMessage(null);
+	}, []);
+
 	const createConversation = React.useCallback(
 		async (payload: MessagePayload) => {
-			const conversation = await conversationApi.createConversation(payload);
-			setCurrentThread(conversation);
-			setConversations((prev) => [...prev, conversation]);
-			router.push(`/chat/${conversation.id}`);
+			conversationApi.createConversation(payload).then((conversation) => {
+				router.push(`/chat/${conversation.id}`);
+				setCurrentThread(conversation);
+				setConversations((prev) => [...prev, conversation]);
+			});
 		},
 		[conversationApi, router],
 	);
+
+	React.useEffect(() => {
+		console.log('currentThread changed: ', currentThread);
+		// conversationApi.cancelReadableStream = true;
+		// setAnswerStream(null);
+		// setSystemMessage(null);
+	}, [currentThread]);
 
 	const sendMessage = React.useCallback(
 		async (consversationId: string, question: string) => {
@@ -103,27 +119,34 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 				const message = new SystemWarningMessage(warning);
 				setSystemMessage(message);
 			} else {
+				// reset any system message
 				setSystemMessage(null);
+				// prepare message for sending
 				const message = new QuestionMessage(question);
 				message.conversationId = consversationId;
+				// determine if we need to create a new conversation
 				if (!currentThread) {
+					// triggers a route change
 					await createConversation(message.payload);
 				} else {
-					addToConversation(message);
+					await addToConversation(message);
 				}
+				// add the message to the db
 				await conversationApi.sendMessage(consversationId, message.payload);
-				const answer = new AnswerMessage();
-				answer.conversationId = consversationId;
-				setAnswerStream(answer);
+				if (currentThread?.id === consversationId) {
+					const answer = new AnswerMessage();
+					answer.conversationId = consversationId;
+					setAnswerStream(answer);
+				}
 			}
 		},
-		[currentThread, conversationApi, router],
+		[currentThread, conversationApi],
 	);
 
 	const addToConversation = React.useCallback(
 		async (message: Message) => {
 			const added = await conversationApi.addMessage(currentThread.id, message.payload);
-			if (added) {
+			if (added && message.conversationId === currentThread.id) {
 				setCurrentThread((prevConversation: Conversation) => {
 					const conversation = new Conversation(prevConversation.id, prevConversation.title);
 					Object.assign(conversation, prevConversation);
