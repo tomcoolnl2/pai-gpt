@@ -2,43 +2,39 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '@auth0/nextjs-auth0';
 import { Filter, FindOneAndUpdateOptions, UpdateFilter, ObjectId } from 'mongodb';
 import clientPromise from 'lib/mongodb';
+import { MessagePayload, Role } from 'model';
 
 export default async function addMessage(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+	//
 	try {
 		const { user } = await getSession(req, res);
 		const client = await clientPromise;
 		const db = client.db('pai-gpt');
 
-		const {
-			conversationId,
-			payload: { content, role },
-		} = req.body;
+		const { conversationId, payload } = req.body;
+		const { content, role } = payload as MessagePayload;
 
 		let objectId: ObjectId;
 		try {
 			objectId = new ObjectId(conversationId);
 		} catch (e) {
-			res.status(422).json({
-				message: 'Invalid conversation ID',
-			});
+			res.status(422).json({ message: 'Invalid conversation ID' });
 			return;
 		}
 
 		if (
 			!content ||
 			typeof content !== 'string' ||
-			(role === 'user' && content.length > 200) ||
-			(role === 'assistant' && content.length > 100000)
+			(role === Role.USER && content.length > 200) ||
+			(role === Role.ASSISTANT && content.length > 100000)
 		) {
-			res.status(422).json({
-				message: 'Invalid message content or length',
-			});
+			res.status(422).json({ message: 'Invalid message content or length' });
 			return;
 		}
 
-		if (!['user', 'assistant'].includes(role)) {
+		if (![Role.USER, Role.ASSISTANT].includes(role)) {
 			res.status(422).json({
-				message: 'Role must be either "assistant" or "user"',
+				message: `Role must be either "${Role.USER}" or "${Role.ASSISTANT}"`,
 			});
 			return;
 		}
