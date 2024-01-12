@@ -26,7 +26,7 @@ export default async function createConversation(
 			return;
 		}
 
-		const title = payload.content || 'No title';
+		const title = payload.content;
 		const messages: MessagePayload[] = [payload];
 		const body = { title, messages };
 
