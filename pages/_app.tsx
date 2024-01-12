@@ -1,5 +1,6 @@
 import React from 'react';
 import Head from 'next/head';
+import { Outfit } from 'next/font/google';
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 import { ConversationProvider } from 'context/conversation';
 
@@ -9,6 +10,11 @@ import '../styles/globals.css';
 
 config.autoAddCss = false;
 
+const outfit = Outfit({
+	subsets: ['latin'],
+	variable: '--font-outfit',
+});
+
 const App = ({ Component, pageProps }) => {
 	return (
 		<UserProvider>
@@ -16,7 +22,9 @@ const App = ({ Component, pageProps }) => {
 				<Head>
 					<link rel="icon" href="/logo.svg" />
 				</Head>
-				<Component {...pageProps} />
+				<main className={`${outfit.variable} font-body`}>
+					<Component {...pageProps} />
+				</main>
 			</ConversationProvider>
 		</UserProvider>
 	);

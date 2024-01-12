@@ -13,6 +13,9 @@ module.exports = {
 			center: true,
 		},
 		extend: {
+			fontFamily: {
+				body: 'var(--font-outfit), sans-serif'
+			},
 			animation: {
 				ellipsis: 'ellipsis steps(4,end) 900ms infinite',
 			},
