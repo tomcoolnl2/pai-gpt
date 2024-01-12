@@ -1,6 +1,7 @@
 import React from 'react';
 import { NextRouter, useRouter } from 'next/router';
 import { UserContext, useUser } from '@auth0/nextjs-auth0/client';
+import { ConversationApi } from 'lib/ConversationApi';
 import {
 	AnswerMessage,
 	Conversation,
@@ -10,7 +11,6 @@ import {
 	SystemMessage,
 	SystemWarningMessage,
 } from 'model';
-import { ConversationApi } from 'api';
 
 interface ConversationState {
 	conversations: Conversation[] | null;
