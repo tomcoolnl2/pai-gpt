@@ -75,11 +75,6 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 	}, [user, router.query, currentThread]);
 
 	React.useEffect(() => {
-		const { conversationId: [id = null] = [] } = router.query;
-		console.log('conversationId', id);
-	}, [user, router.query, currentThread]);
-
-	React.useEffect(() => {
 		if (!user) {
 			return;
 		}
@@ -104,13 +99,6 @@ export const ConversationProvider: React.FC<Props> = React.memo(({ children }) =
 		},
 		[conversationApi, router],
 	);
-
-	React.useEffect(() => {
-		console.log('currentThread changed: ', currentThread);
-		// conversationApi.cancelReadableStream = true;
-		// setAnswerStream(null);
-		// setSystemMessage(null);
-	}, [currentThread]);
 
 	const sendMessage = React.useCallback(
 		async (consversationId: string, question: string) => {
