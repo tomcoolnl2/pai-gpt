@@ -29,6 +29,20 @@ export default async function sendMessage(req: Request): Promise<Response> {
 
 		const userMessage = { role, content } as MessagePayload;
 
+		if (!content || typeof content !== 'string' || content.length > 200) {
+			return new Response(
+				JSON.stringify({
+					message: 'Message is required and must be less then 200 characters',
+				}),
+				{
+					status: 422,
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				},
+			);
+		}
+
 		let thread = [];
 		if (conversationId) {
 			try {

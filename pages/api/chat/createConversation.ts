@@ -1,9 +1,8 @@
 // will be running in a Node environment
 import { NextApiRequest, NextApiResponse } from 'next';
-import { ObjectId } from 'mongodb';
 import { getSession } from '@auth0/nextjs-auth0';
 import clientPromise from 'lib/mongodb';
-import { ConversationPayload } from 'model';
+import { ConversationPayload, MessagePayload } from 'model';
 
 type ResponseError = {
 	message: string;
@@ -20,8 +19,15 @@ export default async function createConversation(
 		const { user } = await getSession(req, res);
 		const { payload } = req.body;
 
+		if (!payload.content || typeof payload.content !== 'string' || payload.content.length > 200) {
+			res.status(422).json({
+				message: 'Message is required and must be less then 200 characters',
+			});
+			return;
+		}
+
 		const title = payload.content || 'No title';
-		const messages = [payload];
+		const messages: MessagePayload[] = [payload];
 		const body = { title, messages };
 
 		const client = await clientPromise;
