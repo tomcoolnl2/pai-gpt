@@ -1,5 +1,6 @@
 import React from 'react';
 import Head from 'next/head';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Outfit } from 'next/font/google';
 import { UserProvider } from '@auth0/nextjs-auth0/client';
 import { ConversationProvider } from 'context/conversation';
@@ -25,6 +26,7 @@ const App = ({ Component, pageProps }) => {
 				<main className={`${outfit.variable} font-body`}>
 					<Component {...pageProps} />
 				</main>
+				<SpeedInsights />
 			</ConversationProvider>
 		</UserProvider>
 	);
