@@ -1,0 +1,19 @@
+name: Validate Commit and Test
+
+on:
+    push:
+        branches-ignore:
+            - main
+
+jobs:
+    validate-commit-message:
+        name: Validate commit message
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
+
+            - name: Validate Commit Message
+              uses: webiny/action-conventional-commits@v1.1.0
