@@ -14,16 +14,16 @@ module.exports = {
 		},
 		extend: {
 			fontFamily: {
-				body: 'var(--font-outfit), sans-serif'
+				body: 'var(--font-outfit), sans-serif',
 			},
 			animation: {
 				ellipsis: 'ellipsis steps(4,end) 900ms infinite',
 			},
 			keyframes: {
 				ellipsis: {
-				  	'to': { width: '1.25em' },
-				}
-			}
+					to: { width: '1.25em' },
+				},
+			},
 		},
 	},
 	plugins: [require('@tailwindcss/typography')],
