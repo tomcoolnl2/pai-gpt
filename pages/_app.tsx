@@ -3,6 +3,8 @@ import Head from 'next/head';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Outfit } from 'next/font/google';
 import { UserProvider } from '@auth0/nextjs-auth0/client';
+import { ErrorBoundary } from 'react-error-boundary';
+
 import { ConversationProvider } from 'context/conversation';
 
 import { config } from '@fortawesome/fontawesome-svg-core';
@@ -18,17 +20,19 @@ const outfit = Outfit({
 
 const App = ({ Component, pageProps }) => {
 	return (
-		<UserProvider>
-			<ConversationProvider>
-				<Head>
-					<link rel="icon" href="/logo.svg" />
-				</Head>
-				<main className={`${outfit.variable} font-body`}>
-					<Component {...pageProps} />
-				</main>
-				<SpeedInsights />
-			</ConversationProvider>
-		</UserProvider>
+		<ErrorBoundary fallback={<div>Something went wrong</div>}>
+			<UserProvider>
+				<ConversationProvider>
+					<Head>
+						<link rel="icon" href="/logo.svg" />
+					</Head>
+					<main className={`${outfit.variable} font-body`}>
+						<Component {...pageProps} />
+					</main>
+					<SpeedInsights />
+				</ConversationProvider>
+			</UserProvider>
+		</ErrorBoundary>
 	);
 };
 
