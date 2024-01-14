@@ -6,5 +6,4 @@ export * from './Logo';
 export * from './ChatMessageForm';
 export * from './ChatMessage';
 export * from './Modal';
-
-export * from './modals';
+export * from './DeleteConversationModal';

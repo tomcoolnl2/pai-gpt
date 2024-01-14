@@ -1,6 +1,6 @@
 export const Markdown = ({ children }) => {
-	// Mock implementation, you can customize this as needed
-	return <div data-testid="mocked-react-markdown">{children}</div>;
+	// Mock implementation, handle undefined content
+	return <div data-testid="mocked-react-markdown">{children || 'No content available'}</div>;
 };
 
 export const defaultUrlTransform = (url) => {

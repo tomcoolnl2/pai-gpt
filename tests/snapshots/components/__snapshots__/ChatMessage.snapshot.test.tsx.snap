@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChatMessage Component should match the snapshot 1`] = `
+<div>
+  <li
+    class="message message-user"
+  >
+    <img
+      alt="mocked-avatar"
+    />
+    <div
+      class="prose prose-invert"
+    >
+      <div
+        data-testid="mocked-react-markdown"
+      >
+        Hello, World!
+      </div>
+    </div>
+  </li>
+</div>
+`;
