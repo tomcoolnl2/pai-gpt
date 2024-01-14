@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Logo matches snapshot 1`] = `
+<div>
+  <figure
+    class="flex max-w-lg flex-col items-center"
+  >
+    <img
+      height="100"
+      src="/logo.svg"
+      width="100"
+    />
+    <figcaption
+      class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400"
+    >
+      PAI - GPT
+    </figcaption>
+  </figure>
+  <hr
+    class="mx-auto my-4 h-1 w-48 rounded border-0 bg-gray-100 dark:bg-gray-700 md:my-10"
+  />
+</div>
+`;

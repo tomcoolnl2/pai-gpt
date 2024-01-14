@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChatMessageForm matches snapshot 1`] = `
+<div>
+  <footer
+    class="bg-gray-800 p-10"
+  >
+    <form
+      novalidate=""
+    >
+      <fieldset
+        class="flex gap-2"
+      >
+        <textarea
+          class="textarea"
+          placeholder="Send a message..."
+        />
+        <button
+          class="btn"
+          type="submit"
+        >
+          Send
+        </button>
+      </fieldset>
+    </form>
+  </footer>
+</div>
+`;
