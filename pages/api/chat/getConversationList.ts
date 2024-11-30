@@ -33,14 +33,14 @@ export default async function getConversationList(
 					},
 				},
 			)
-			.sort({ id: -1 }) // latest to oldest
+			.sort({ id: -1 }) // newest to oldest
 			.toArray();
 
 		res.status(200).json({ conversations });
 		//
 	} catch (e) {
 		res.status(500).json({
-			message: 'An error occured when getting a list of conversations.',
+			message: 'An error occured when getting your list of conversations.',
 		});
 	}
 }

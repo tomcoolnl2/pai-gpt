@@ -46,7 +46,9 @@ export class ConversationApi {
 	 */
 	private responseIsValid(response: Response): boolean {
 		const message = 'Something went wrong... Please hit any user to proceed!';
-		if (!response.ok || !response.body) {
+		// TODO show message thrown by API
+		if (!response.ok) {
+			const msg = response.body;
 			this.handleError(message);
 			return false;
 		}
