@@ -29,12 +29,10 @@ export async function GET(req: NextRequest) {
 			.toArray();
 
 		return NextResponse.json({ conversations }, { status: 200 });
-	} catch (e) {
-		console.error(e);
+	} catch (error) {
+		console.error('Error adding message:', error);
 		return NextResponse.json(
-			{
-				message: 'An error occurred when getting your list of conversations.',
-			},
+			{ message: 'An error occurred when getting your list of conversations.' },
 			{ status: 500 },
 		);
 	}

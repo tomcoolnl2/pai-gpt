@@ -1,5 +1,5 @@
-import { MessagePayload, Role } from 'model';
-import { OpenAIStream, OpenAIStreamPayload } from 'lib/openAIStream';
+import { MessagePayload, Role } from '../../../../model';
+import { OpenAIStream, OpenAIStreamPayload } from '../../../../lib/openAIStream';
 
 if (!process.env.OPENAI_API_KEY) {
 	throw new Error('Missing OPENAI_API_KEY');
@@ -50,7 +50,7 @@ export default async function sendMessage(req: Request): Promise<Response> {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						cookie: req.headers.get('cookie'),
+						cookie: req.headers.get('cookie') || '',
 					},
 					body: JSON.stringify({ conversationId }),
 				});
